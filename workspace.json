@@ -1,0 +1,769 @@
+{
+	"clientMessage": "query workspaces",
+	"data": {
+		"workspaces": [
+			{
+				"type": "workspace",
+				"id": "57ab6e99-8b6e-44e0-bab6-fb3febaa7c17",
+				"name": "1",
+				"displayName": null,
+				"parentId": "81aab435-0a71-4be1-aef1-607056a92eab",
+				"children": [
+					{
+						"type": "window",
+						"id": "a667bf9a-0ce3-4a70-93e6-d244ddef660c",
+						"parentId": "57ab6e99-8b6e-44e0-bab6-fb3febaa7c17",
+						"hasFocus": false,
+						"tilingSize": 0.10009527,
+						"width": 505,
+						"height": 1380,
+						"x": 10,
+						"y": 50,
+						"state": {
+							"type": "tiling"
+						},
+						"prevState": {
+							"type": "floating",
+							"centered": false,
+							"shownOnTop": false
+						},
+						"displayState": "shown",
+						"borderDelta": {
+							"left": {
+								"amount": 0.0,
+								"unit": "pixel"
+							},
+							"top": {
+								"amount": 0.0,
+								"unit": "pixel"
+							},
+							"right": {
+								"amount": 0.0,
+								"unit": "pixel"
+							},
+							"bottom": {
+								"amount": 0.0,
+								"unit": "pixel"
+							}
+						},
+						"floatingPlacement": {
+							"left": 2374,
+							"top": 50,
+							"right": 2746,
+							"bottom": 1430
+						},
+						"handle": 330108,
+						"title": "*new 6 - Notepad++",
+						"className": "Notepad++",
+						"processName": "notepad++",
+						"activeDrag": {
+							"operation": "Moving",
+							"is_from_tiling": true
+						}
+					},
+					{
+						"type": "window",
+						"id": "1c8f0873-0f46-4f61-a451-e91a81c015f3",
+						"parentId": "57ab6e99-8b6e-44e0-bab6-fb3febaa7c17",
+						"hasFocus": false,
+						"tilingSize": 0.12269008,
+						"width": 620,
+						"height": 1380,
+						"x": 525,
+						"y": 50,
+						"state": {
+							"type": "tiling"
+						},
+						"prevState": null,
+						"displayState": "shown",
+						"borderDelta": {
+							"left": {
+								"amount": 0.0,
+								"unit": "pixel"
+							},
+							"top": {
+								"amount": 0.0,
+								"unit": "pixel"
+							},
+							"right": {
+								"amount": 0.0,
+								"unit": "pixel"
+							},
+							"bottom": {
+								"amount": 0.0,
+								"unit": "pixel"
+							}
+						},
+						"floatingPlacement": {
+							"left": 1317,
+							"top": 101,
+							"right": 3803,
+							"bottom": 1379
+						},
+						"handle": 263432,
+						"title": "git reset - Undo “git add <dir>”? - Stack Overflow — Mozilla Firefox",
+						"className": "MozillaWindowClass",
+						"processName": "firefox",
+						"activeDrag": null
+					},
+					{
+						"type": "window",
+						"id": "30f704a4-d5c6-47bf-b60d-bb742c438ad7",
+						"parentId": "57ab6e99-8b6e-44e0-bab6-fb3febaa7c17",
+						"hasFocus": false,
+						"tilingSize": 0.48492128,
+						"width": 2449,
+						"height": 1380,
+						"x": 1155,
+						"y": 50,
+						"state": {
+							"type": "tiling"
+						},
+						"prevState": null,
+						"displayState": "shown",
+						"borderDelta": {
+							"left": {
+								"amount": 0.0,
+								"unit": "pixel"
+							},
+							"top": {
+								"amount": 0.0,
+								"unit": "pixel"
+							},
+							"right": {
+								"amount": 0.0,
+								"unit": "pixel"
+							},
+							"bottom": {
+								"amount": 0.0,
+								"unit": "pixel"
+							}
+						},
+						"floatingPlacement": {
+							"left": 265,
+							"top": 119,
+							"right": 4855,
+							"bottom": 1361
+						},
+						"handle": 593110,
+						"title": "glazewm_startup – config.json",
+						"className": "SunAwtFrame",
+						"processName": "pycharm64",
+						"activeDrag": null
+					},
+					{
+						"type": "window",
+						"id": "89f4aa74-b98b-464a-b7b5-e13af8e9f522",
+						"parentId": "57ab6e99-8b6e-44e0-bab6-fb3febaa7c17",
+						"hasFocus": true,
+						"tilingSize": 0.16666667,
+						"width": 842,
+						"height": 1380,
+						"x": 3614,
+						"y": 50,
+						"state": {
+							"type": "tiling"
+						},
+						"prevState": null,
+						"displayState": "shown",
+						"borderDelta": {
+							"left": {
+								"amount": 0.0,
+								"unit": "pixel"
+							},
+							"top": {
+								"amount": 0.0,
+								"unit": "pixel"
+							},
+							"right": {
+								"amount": 0.0,
+								"unit": "pixel"
+							},
+							"bottom": {
+								"amount": 0.0,
+								"unit": "pixel"
+							}
+						},
+						"floatingPlacement": {
+							"left": 2270,
+							"top": 555,
+							"right": 2851,
+							"bottom": 925
+						},
+						"handle": 724368,
+						"title": "MINGW64:/c/Users/user",
+						"className": "mintty",
+						"processName": "mintty",
+						"activeDrag": null
+					},
+					{
+						"type": "window",
+						"id": "214c8c57-00d4-4b37-81de-ffbae2648ac8",
+						"parentId": "57ab6e99-8b6e-44e0-bab6-fb3febaa7c17",
+						"hasFocus": false,
+						"tilingSize": 0.088638514,
+						"width": 448,
+						"height": 1380,
+						"x": 4466,
+						"y": 50,
+						"state": {
+							"type": "tiling"
+						},
+						"prevState": null,
+						"displayState": "shown",
+						"borderDelta": {
+							"left": {
+								"amount": 0.0,
+								"unit": "pixel"
+							},
+							"top": {
+								"amount": 0.0,
+								"unit": "pixel"
+							},
+							"right": {
+								"amount": 0.0,
+								"unit": "pixel"
+							},
+							"bottom": {
+								"amount": 0.0,
+								"unit": "pixel"
+							}
+						},
+						"floatingPlacement": {
+							"left": 2270,
+							"top": 555,
+							"right": 2851,
+							"bottom": 925
+						},
+						"handle": 331032,
+						"title": "MINGW64:/c/Users/user/home/gitcode/glazewm_startup",
+						"className": "mintty",
+						"processName": "mintty",
+						"activeDrag": null
+					},
+					{
+						"type": "window",
+						"id": "4610776d-9089-4d33-9cbc-f54e211b9ad8",
+						"parentId": "57ab6e99-8b6e-44e0-bab6-fb3febaa7c17",
+						"hasFocus": false,
+						"tilingSize": 0.036988202,
+						"width": 187,
+						"height": 1380,
+						"x": 4924,
+						"y": 50,
+						"state": {
+							"type": "tiling"
+						},
+						"prevState": null,
+						"displayState": "shown",
+						"borderDelta": {
+							"left": {
+								"amount": 0.0,
+								"unit": "pixel"
+							},
+							"top": {
+								"amount": 0.0,
+								"unit": "pixel"
+							},
+							"right": {
+								"amount": 0.0,
+								"unit": "pixel"
+							},
+							"bottom": {
+								"amount": 0.0,
+								"unit": "pixel"
+							}
+						},
+						"floatingPlacement": {
+							"left": 1952,
+							"top": 542,
+							"right": 3168,
+							"bottom": 938
+						},
+						"handle": 460314,
+						"title": "glazewm - File Explorer",
+						"className": "CabinetWClass",
+						"processName": "explorer",
+						"activeDrag": null
+					}
+				],
+				"childFocusOrder": [
+					"89f4aa74-b98b-464a-b7b5-e13af8e9f522",
+					"30f704a4-d5c6-47bf-b60d-bb742c438ad7",
+					"214c8c57-00d4-4b37-81de-ffbae2648ac8",
+					"1c8f0873-0f46-4f61-a451-e91a81c015f3",
+					"a667bf9a-0ce3-4a70-93e6-d244ddef660c",
+					"4610776d-9089-4d33-9cbc-f54e211b9ad8"
+				],
+				"hasFocus": true,
+				"isDisplayed": true,
+				"width": 5100,
+				"height": 1380,
+				"x": 10,
+				"y": 50,
+				"tilingDirection": "horizontal"
+			},
+			{
+				"type": "workspace",
+				"id": "3a8ba963-16bd-4444-a92b-f5316d453639",
+				"name": "2",
+				"displayName": null,
+				"parentId": "81aab435-0a71-4be1-aef1-607056a92eab",
+				"children": [
+					{
+						"type": "split",
+						"id": "5527df84-432f-408e-b2d8-247ab7cd0e28",
+						"parentId": "3a8ba963-16bd-4444-a92b-f5316d453639",
+						"children": [
+							{
+								"type": "window",
+								"id": "c8a254a5-4762-4f31-a6d7-54fbc8811f9a",
+								"parentId": "5527df84-432f-408e-b2d8-247ab7cd0e28",
+								"hasFocus": false,
+								"tilingSize": 0.5,
+								"width": 930,
+								"height": 685,
+								"x": 10,
+								"y": 50,
+								"state": {
+									"type": "tiling"
+								},
+								"prevState": null,
+								"displayState": "hidden",
+								"borderDelta": {
+									"left": {
+										"amount": 0.0,
+										"unit": "pixel"
+									},
+									"top": {
+										"amount": 0.0,
+										"unit": "pixel"
+									},
+									"right": {
+										"amount": 0.0,
+										"unit": "pixel"
+									},
+									"bottom": {
+										"amount": 0.0,
+										"unit": "pixel"
+									}
+								},
+								"floatingPlacement": {
+									"left": 265,
+									"top": 119,
+									"right": 4855,
+									"bottom": 1361
+								},
+								"handle": 132168,
+								"title": "WhatsApp",
+								"className": "WinUIDesktopWin32WindowClass",
+								"processName": "WhatsApp",
+								"activeDrag": null
+							},
+							{
+								"type": "window",
+								"id": "ef3e1624-e523-495d-9618-cd11778422ab",
+								"parentId": "5527df84-432f-408e-b2d8-247ab7cd0e28",
+								"hasFocus": false,
+								"tilingSize": 0.5,
+								"width": 930,
+								"height": 685,
+								"x": 10,
+								"y": 745,
+								"state": {
+									"type": "tiling"
+								},
+								"prevState": null,
+								"displayState": "hidden",
+								"borderDelta": {
+									"left": {
+										"amount": 0.0,
+										"unit": "pixel"
+									},
+									"top": {
+										"amount": 0.0,
+										"unit": "pixel"
+									},
+									"right": {
+										"amount": 0.0,
+										"unit": "pixel"
+									},
+									"bottom": {
+										"amount": 0.0,
+										"unit": "pixel"
+									}
+								},
+								"floatingPlacement": {
+									"left": 1714,
+									"top": 119,
+									"right": 3407,
+									"bottom": 1361
+								},
+								"handle": 527844,
+								"title": "Phone Link",
+								"className": "WinUIDesktopWin32WindowClass",
+								"processName": "PhoneExperienceHost",
+								"activeDrag": null
+							}
+						],
+						"childFocusOrder": [
+							"ef3e1624-e523-495d-9618-cd11778422ab",
+							"c8a254a5-4762-4f31-a6d7-54fbc8811f9a"
+						],
+						"hasFocus": false,
+						"tilingSize": 0.18350004,
+						"width": 930,
+						"height": 1380,
+						"x": 10,
+						"y": 50,
+						"tilingDirection": "vertical"
+					},
+					{
+						"type": "window",
+						"id": "b624bdd5-8dfe-4ab3-8688-9dc3dd7d1ee7",
+						"parentId": "3a8ba963-16bd-4444-a92b-f5316d453639",
+						"hasFocus": false,
+						"tilingSize": 0.44930968,
+						"width": 2278,
+						"height": 1380,
+						"x": 950,
+						"y": 50,
+						"state": {
+							"type": "tiling"
+						},
+						"prevState": null,
+						"displayState": "hidden",
+						"borderDelta": {
+							"left": {
+								"amount": 0.0,
+								"unit": "pixel"
+							},
+							"top": {
+								"amount": 0.0,
+								"unit": "pixel"
+							},
+							"right": {
+								"amount": 0.0,
+								"unit": "pixel"
+							},
+							"bottom": {
+								"amount": 0.0,
+								"unit": "pixel"
+							}
+						},
+						"floatingPlacement": {
+							"left": 2189,
+							"top": 119,
+							"right": 2931,
+							"bottom": 1361
+						},
+						"handle": 527618,
+						"title": "Inbox | Proton Mail — Mozilla Firefox",
+						"className": "MozillaWindowClass",
+						"processName": "firefox",
+						"activeDrag": null
+					},
+					{
+						"type": "split",
+						"id": "5567f313-3e85-4239-bfe1-0a9a7c9d1861",
+						"parentId": "3a8ba963-16bd-4444-a92b-f5316d453639",
+						"children": [
+							{
+								"type": "window",
+								"id": "65deaa69-ac8b-4a18-b47e-f708e1966d0f",
+								"parentId": "5567f313-3e85-4239-bfe1-0a9a7c9d1861",
+								"hasFocus": false,
+								"tilingSize": 0.5,
+								"width": 931,
+								"height": 685,
+								"x": 3238,
+								"y": 50,
+								"state": {
+									"type": "tiling"
+								},
+								"prevState": null,
+								"displayState": "hidden",
+								"borderDelta": {
+									"left": {
+										"amount": 0.0,
+										"unit": "pixel"
+									},
+									"top": {
+										"amount": 0.0,
+										"unit": "pixel"
+									},
+									"right": {
+										"amount": 0.0,
+										"unit": "pixel"
+									},
+									"bottom": {
+										"amount": 0.0,
+										"unit": "pixel"
+									}
+								},
+								"floatingPlacement": {
+									"left": 1288,
+									"top": 119,
+									"right": 3833,
+									"bottom": 1361
+								},
+								"handle": 920832,
+								"title": "Instagram • Messages — Mozilla Firefox",
+								"className": "MozillaWindowClass",
+								"processName": "firefox",
+								"activeDrag": null
+							},
+							{
+								"type": "window",
+								"id": "1c6cd0dc-4127-48c0-b51b-dbca3c907b0e",
+								"parentId": "5567f313-3e85-4239-bfe1-0a9a7c9d1861",
+								"hasFocus": false,
+								"tilingSize": 0.5,
+								"width": 931,
+								"height": 685,
+								"x": 3238,
+								"y": 745,
+								"state": {
+									"type": "tiling"
+								},
+								"prevState": null,
+								"displayState": "hidden",
+								"borderDelta": {
+									"left": {
+										"amount": 0.0,
+										"unit": "pixel"
+									},
+									"top": {
+										"amount": 0.0,
+										"unit": "pixel"
+									},
+									"right": {
+										"amount": 0.0,
+										"unit": "pixel"
+									},
+									"bottom": {
+										"amount": 0.0,
+										"unit": "pixel"
+									}
+								},
+								"floatingPlacement": {
+									"left": 1926,
+									"top": 119,
+									"right": 3194,
+									"bottom": 1361
+								},
+								"handle": 527952,
+								"title": "Messenger — Mozilla Firefox",
+								"className": "MozillaWindowClass",
+								"processName": "firefox",
+								"activeDrag": null
+							}
+						],
+						"childFocusOrder": [
+							"1c6cd0dc-4127-48c0-b51b-dbca3c907b0e",
+							"65deaa69-ac8b-4a18-b47e-f708e1966d0f"
+						],
+						"hasFocus": false,
+						"tilingSize": 0.18359514,
+						"width": 931,
+						"height": 1380,
+						"x": 3238,
+						"y": 50,
+						"tilingDirection": "vertical"
+					},
+					{
+						"type": "split",
+						"id": "ec895e38-6004-4b92-a131-c1aca84dae63",
+						"parentId": "3a8ba963-16bd-4444-a92b-f5316d453639",
+						"children": [
+							{
+								"type": "window",
+								"id": "deaa126b-e1d7-4edd-b46f-a8d1a0ceced1",
+								"parentId": "ec895e38-6004-4b92-a131-c1aca84dae63",
+								"hasFocus": false,
+								"tilingSize": 0.5,
+								"width": 931,
+								"height": 685,
+								"x": 4179,
+								"y": 50,
+								"state": {
+									"type": "tiling"
+								},
+								"prevState": null,
+								"displayState": "hidden",
+								"borderDelta": {
+									"left": {
+										"amount": 0.0,
+										"unit": "pixel"
+									},
+									"top": {
+										"amount": 0.0,
+										"unit": "pixel"
+									},
+									"right": {
+										"amount": 0.0,
+										"unit": "pixel"
+									},
+									"bottom": {
+										"amount": 0.0,
+										"unit": "pixel"
+									}
+								},
+								"floatingPlacement": {
+									"left": 1288,
+									"top": 119,
+									"right": 3833,
+									"bottom": 1361
+								},
+								"handle": 462348,
+								"title": "LINE",
+								"className": "Qt663QWindowIcon",
+								"processName": "LINE",
+								"activeDrag": null
+							},
+							{
+								"type": "window",
+								"id": "3f6161ce-f4cd-492c-becf-fd88411355c3",
+								"parentId": "ec895e38-6004-4b92-a131-c1aca84dae63",
+								"hasFocus": false,
+								"tilingSize": 0.5,
+								"width": 931,
+								"height": 685,
+								"x": 4179,
+								"y": 745,
+								"state": {
+									"type": "tiling"
+								},
+								"prevState": null,
+								"displayState": "hidden",
+								"borderDelta": {
+									"left": {
+										"amount": 0.0,
+										"unit": "pixel"
+									},
+									"top": {
+										"amount": 0.0,
+										"unit": "pixel"
+									},
+									"right": {
+										"amount": 0.0,
+										"unit": "pixel"
+									},
+									"bottom": {
+										"amount": 0.0,
+										"unit": "pixel"
+									}
+								},
+								"floatingPlacement": {
+									"left": 1926,
+									"top": 119,
+									"right": 3194,
+									"bottom": 1361
+								},
+								"handle": 396412,
+								"title": "Voice - Messages — Mozilla Firefox",
+								"className": "MozillaWindowClass",
+								"processName": "firefox",
+								"activeDrag": null
+							}
+						],
+						"childFocusOrder": [
+							"3f6161ce-f4cd-492c-becf-fd88411355c3",
+							"deaa126b-e1d7-4edd-b46f-a8d1a0ceced1"
+						],
+						"hasFocus": false,
+						"tilingSize": 0.18359514,
+						"width": 931,
+						"height": 1380,
+						"x": 4179,
+						"y": 50,
+						"tilingDirection": "vertical"
+					}
+				],
+				"childFocusOrder": [
+					"b624bdd5-8dfe-4ab3-8688-9dc3dd7d1ee7",
+					"5567f313-3e85-4239-bfe1-0a9a7c9d1861",
+					"ec895e38-6004-4b92-a131-c1aca84dae63",
+					"5527df84-432f-408e-b2d8-247ab7cd0e28"
+				],
+				"hasFocus": false,
+				"isDisplayed": false,
+				"width": 5100,
+				"height": 1380,
+				"x": 10,
+				"y": 50,
+				"tilingDirection": "horizontal"
+			},
+			{
+				"type": "workspace",
+				"id": "b577806c-15e2-4947-a74d-78f8c8684f07",
+				"name": "3",
+				"displayName": null,
+				"parentId": "81aab435-0a71-4be1-aef1-607056a92eab",
+				"children": [
+					{
+						"type": "window",
+						"id": "2f7bce15-b2ce-4450-b655-b4e5c813c3ba",
+						"parentId": "b577806c-15e2-4947-a74d-78f8c8684f07",
+						"hasFocus": false,
+						"tilingSize": null,
+						"width": 400,
+						"height": 600,
+						"x": 2360,
+						"y": 440,
+						"state": {
+							"type": "floating",
+							"centered": true,
+							"shownOnTop": false
+						},
+						"prevState": {
+							"type": "tiling"
+						},
+						"displayState": "hidden",
+						"borderDelta": {
+							"left": {
+								"amount": 0.0,
+								"unit": "pixel"
+							},
+							"top": {
+								"amount": 0.0,
+								"unit": "pixel"
+							},
+							"right": {
+								"amount": 0.0,
+								"unit": "pixel"
+							},
+							"bottom": {
+								"amount": 0.0,
+								"unit": "pixel"
+							}
+						},
+						"floatingPlacement": {
+							"left": 2360,
+							"top": 440,
+							"right": 2760,
+							"bottom": 1040
+						},
+						"handle": 396782,
+						"title": "Calculator",
+						"className": "ApplicationFrameWindow",
+						"processName": "ApplicationFrameHost",
+						"activeDrag": null
+					}
+				],
+				"childFocusOrder": [
+					"2f7bce15-b2ce-4450-b655-b4e5c813c3ba"
+				],
+				"hasFocus": false,
+				"isDisplayed": false,
+				"width": 5100,
+				"height": 1380,
+				"x": 10,
+				"y": 50,
+				"tilingDirection": "vertical"
+			}
+		]
+	},
+	"error": null,
+	"success": true
+}

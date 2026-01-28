@@ -1,0 +1,19 @@
+{
+  "name": "glazewm-startup-js",
+  "version": "0.1.0",
+  "description": "GlazeWM workspace startup and parse utilities (JS)",
+  "type": "module",
+  "main": "src/parseWorkspace.js",
+  "scripts": {
+    "parse": "node src/cli-parse.js",
+    "startup": "node src/cli-startup.js",
+    "clear": "node src/cli-clear.js",
+    "test": "node --test src/parseWorkspace.test.js"
+  },
+  "keywords": ["glazewm", "windows", "tiling", "workspace"],
+  "license": "MIT",
+  "dependencies": {
+    "glazewm": "^1.7.0",
+    "ws": "^8.18.0"
+  }
+}

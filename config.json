@@ -1,0 +1,81 @@
+{
+  "workspaces": [
+    {
+      "name": "2",
+      "tilingDirection": "horizontal",
+      "children": [
+        {
+          "type": "split",
+          "tilingDirection": "vertical",
+          "tilingSize": 0.18350004,
+          "children": [
+            {
+              "type": "window",
+              "title": "WhatsApp",
+              "path": "C:\\Program Files\\WindowsApps\\5319275A.WhatsAppDesktop_2.2587.9.0_x64__cv1g1gvanyjgm\\WhatsApp.Root.exe",
+              "tilingSize": 0.5
+            },
+            {
+              "type": "window",
+              "title": "Phone Link",
+              "path": "C:\\Program Files\\Mozilla Firefox\\firefox.exe",
+              "tilingSize": 0.5
+            }
+          ]
+        },
+        {
+          "type": "window",
+          "title": "Inbox | Proton Mail — Mozilla Firefox",
+          "path": "C:\\Program Files\\Mozilla Firefox\\firefox.exe",
+          "link": "https://mail.proton.me/u/0/inbox",
+          "fullscreen": true,
+          "tilingSize": 0.44930968
+        },
+        {
+          "type": "split",
+          "tilingDirection": "vertical",
+          "tilingSize": 0.18359514,
+          "children": [
+            {
+              "type": "window",
+              "title": "Instagram • Messages — Mozilla Firefox",
+              "path": "C:\\Program Files\\Mozilla Firefox\\firefox.exe",
+              "link": "https://www.instagram.com/direct/inbox/",
+              "fullscreen": true,
+              "tilingSize": 0.5
+            },
+            {
+              "type": "window",
+              "title": "Messenger — Mozilla Firefox",
+              "path": "C:\\Program Files\\Mozilla Firefox\\firefox.exe",
+              "link": "https://www.messenger.com/",
+              "fullscreen": true,
+              "tilingSize": 0.5
+            }
+          ]
+        },
+        {
+          "type": "split",
+          "tilingDirection": "vertical",
+          "tilingSize": 0.18359514,
+          "children": [
+            {
+              "type": "window",
+              "title": "LINE",
+              "path": "C:\\Users\\user\\AppData\\Local\\LINE\\bin\\current\\LINE.exe",
+              "tilingSize": 0.5
+            },
+            {
+              "type": "window",
+              "title": "Voice - Messages — Mozilla Firefox",
+              "path": "C:\\Program Files\\Mozilla Firefox\\firefox.exe",
+              "link": "https://voice.google.com/",
+              "fullscreen": true,
+              "tilingSize": 0.5
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
