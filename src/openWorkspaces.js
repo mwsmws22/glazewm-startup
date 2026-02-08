@@ -2,17 +2,17 @@
  * GlazeWM Open Workspaces
  *
  * Opens applications defined in config for each workspace:
- * focus workspace, spawn each app, then wait for windows via WINDOW_MANAGED events (or max 30s).
+ * focus workspace, spawn each app, wait for window via WINDOW_MANAGED, then focus + F11; per-window timeout.
  * Config uses "application": exe path (.exe), AUMID (contains !), or exact Start Menu display name (Windows).
  */
 
-import { spawn } from 'child_process';
-import { WmEventType } from 'glazewm';
-import { findAllWindows, flattenApplications } from './parseWorkspace.js';
+import {spawn} from 'child_process';
+import {WmEventType} from 'glazewm';
+import {findAllWindows, flattenApplications} from './parseWorkspace.js';
 
 const BEFORE_OPEN_FOCUS_DELAY_MS = 500;
-const WAIT_TIME_BETWEEN_APPS_MS = 1000;
-const MAX_WAIT_FOR_WINDOWS_MS = 60_000;
+const PER_WINDOW_TIMEOUT_MS = 60_000;
+const AFTER_FOCUS_BEFORE_F11_MS = 300;
 
 const isWindows = process.platform === 'win32';
 
@@ -72,51 +72,191 @@ async function getStartAppsDict() {
 }
 
 /**
- * Wait for expectedCount windows in workspace by subscribing to WINDOW_MANAGED.
- * Each time GlazeWM manages a new window we re-check the workspace count; resolve when count >= expectedCount or maxWaitMs.
- * See https://github.com/glzr-io/glazewm-js – WmEventType.WINDOW_MANAGED.
+ * Wait for one new window in the workspace (id not in previousIds) via WINDOW_MANAGED subscription.
+ * Resolves with window id when a managed window belongs to wsName and is not in previousIds; null on timeout.
+ * @param {object} client - WmClient
+ * @param {string} workspaceName - Target workspace name
+ * @param {string[]} previousIds - Window ids to ignore
+ * @returns {Promise<string|null>} New window id or null
  */
-async function waitUntilWindowsUp(client, workspaceName, expectedCount, maxWaitMs, opts = {}) {
-  const log = opts.log ?? (() => {});
-  if (expectedCount <= 0) return;
-
+async function waitForOneNewWindow(client, workspaceName, previousIds) {
+  const seen = new Set(previousIds);
   let resolveWait;
   const waitPromise = new Promise((resolve) => {
     resolveWait = resolve;
   });
 
-  const check = async () => {
+  const handler = async (event) => {
+    const id = event?.managedWindow?.id;
+    if (!id || seen.has(id)) return;
     const { workspaces } = await client.queryWorkspaces();
     const ws = workspaces?.find((w) => w?.name === workspaceName);
-    const count = ws ? findAllWindows(ws).length : 0;
-    if (count >= expectedCount) resolveWait();
+    if (!ws) return;
+    const windows = findAllWindows(ws);
+    const inWorkspace = windows.some((w) => w?.id === id);
+    if (inWorkspace) resolveWait(id);
   };
 
-  const unlisten = await client.subscribe(WmEventType.WINDOW_MANAGED, check);
+  const unlisten = await client.subscribe(WmEventType.WINDOW_MANAGED, handler);
 
   try {
-    await check();
-    await Promise.race([waitPromise, delay(maxWaitMs)]);
-    const { workspaces } = await client.queryWorkspaces();
-    const ws = workspaces?.find((w) => w?.name === workspaceName);
-    const finalCount = ws ? findAllWindows(ws).length : 0;
-    if (finalCount >= expectedCount) {
-      log(`Workspace ${workspaceName}: ${finalCount} window(s) up`);
-    } else {
-      log(`Workspace ${workspaceName}: timed out after ${maxWaitMs / 1000}s (${finalCount}/${expectedCount} windows)`);
-    }
+    return await Promise.race([waitPromise, delay(PER_WINDOW_TIMEOUT_MS).then(() => null)]);
   } finally {
-    unlisten();
+    await unlisten();
+  }
+}
+
+/**
+ * Send F11 key to the foreground window (Windows). GlazeWM must have focused the window first.
+ */
+function sendF11Key() {
+  if (!isWindows) return;
+  const cmd =
+    'Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.SendKeys]::SendWait(\'{F11}\')';
+  spawn('powershell', ['-NoProfile', '-NonInteractive', '-WindowStyle', 'Hidden', '-Command', cmd], {
+    windowsHide: true,
+    stdio: 'ignore',
+  }).unref();
+}
+
+/**
+ * Focus a window by id and send F11 after a short delay.
+ * @param {object} client - WmClient
+ * @param {string} windowId - Container id of the window
+ */
+async function focusWindowAndSendF11(client, windowId) {
+  await client.runCommand('focus --container-id ' + windowId);
+  await delay(AFTER_FOCUS_BEFORE_F11_MS);
+  sendF11Key();
+}
+
+/**
+ * Resolve application (exe / AUMID / name), spawn process. Handles child.on('error') and child.unref().
+ * For by-name launch on non-Windows, throws. For by-name when app not found, throws.
+ * @param {object} app - Config node with application, title/name, args, link, etc.
+ * @param {{ log: (msg: string) => void, client?: object, originalWorkspace?: string }} opts
+ */
+function launchApplication(app, opts = {}) {
+  const log = opts.log ?? (() => {});
+  const client = opts.client;
+  const originalWorkspace = opts.originalWorkspace ?? null;
+  const application = app?.application ?? app?.path;
+  const name = app?.title ?? app?.name ?? 'Unknown';
+
+  if (!application || application === 'FILL ME IN') {
+    throw new Error(`No application for ${name}`);
+  }
+
+  let child;
+  if (application.endsWith('.exe')) {
+    const baseArgs = Array.isArray(app?.args) ? [...app.args] : [];
+    let args = baseArgs;
+    if (app?.link) {
+      args = [...baseArgs, '-new-window'];
+      args.push(app.link);
+    }
+    log(`Opening: ${name}${app?.link ? ' ' + app.link : ''}`);
+    child = spawn(application, args, { detached: true, stdio: 'ignore', shell: false });
+  } else if (application.includes('!')) {
+    log(`Opening: ${name} (AUMID)`);
+    child = spawn('explorer.exe', ['shell:AppsFolder\\' + application], { detached: true, stdio: 'ignore', shell: false });
+  } else {
+    if (!isWindows) {
+      throw new Error(`Launch by name is Windows-only: ${name}`);
+    }
+    const dict = startAppsDict;
+    if (dict == null) {
+      throw new Error('getStartAppsDict must be called before launch by name');
+    }
+    const aumid = dict[application];
+    if (aumid == null) {
+      throw new Error(`App not found: ${application}`);
+    }
+    log(`Opening: ${name}`);
+    child = spawn('explorer.exe', ['shell:AppsFolder\\' + aumid], { detached: true, stdio: 'ignore', shell: false });
+  }
+
+  child.on('error', async (err) => {
+    const msg = err?.message ?? String(err);
+    log(`Failed to open ${name}: ${msg}`);
+    if (originalWorkspace && client) {
+      try {
+        await client.runCommand('focus --workspace ' + originalWorkspace);
+        await delay(300);
+      } catch (_) {}
+    }
+    process.exit(1);
+  });
+  child.unref();
+}
+
+/**
+ * Open all apps in one workspace: focus workspace, then for each app launch → wait for window → F11.
+ * On per-window timeout, exits process.
+ * @param {object} client - WmClient
+ * @param {object} workspace - Config workspace node (name, children / flattenApplications)
+ * @param {{ log: (msg: string) => void, client: object, originalWorkspace: string|null }} opts
+ */
+async function openAppsInWorkspace(client, workspace, opts = {}) {
+  const log = opts.log ?? (() => {});
+  const wsName = workspace?.name;
+  const applications = flattenApplications(workspace);
+  if (!wsName || applications.length === 0) return;
+
+  log(`Focusing workspace ${wsName}`);
+  await client.runCommand('focus --workspace ' + wsName);
+  await delay(BEFORE_OPEN_FOCUS_DELAY_MS);
+
+  for (const app of applications) {
+    const application = app?.application ?? app?.path;
+    const name = app?.title ?? app?.name ?? 'Unknown';
+
+    if (!application || application === 'FILL ME IN') {
+      log(`Skipping ${name}: no application`);
+      continue;
+    }
+
+    const { workspaces } = await client.queryWorkspaces();
+    const ws = workspaces?.find((w) => w?.name === wsName);
+    const previousIds = ws ? findAllWindows(ws).map((w) => w.id).filter(Boolean) : [];
+
+    try {
+      launchApplication(app, { ...opts, client });
+    } catch (err) {
+      log(err?.message ?? String(err));
+      if (opts.originalWorkspace) {
+        try {
+          await client.runCommand('focus --workspace ' + opts.originalWorkspace);
+          await delay(300);
+        } catch (_) {}
+      }
+      process.exit(1);
+    }
+
+    const newWindowId = await waitForOneNewWindow(client, wsName, previousIds);
+
+    if (newWindowId == null) {
+      log(`Timed out waiting for window in ${wsName} (${name})`);
+      if (opts.originalWorkspace) {
+        try {
+          await client.runCommand('focus --workspace ' + opts.originalWorkspace);
+          await delay(300);
+        } catch (_) {}
+      }
+      process.exit(1);
+    }
+
+    await focusWindowAndSendF11(client, newWindowId);
   }
 }
 
 /**
  * Open applications in each workspace from config.
- * "application" can be: .exe path (spawn directly), AUMID (explorer shell:AppsFolder), or exact Start Menu name (Windows).
+ * For every window: open app → wait for window (WINDOW_MANAGED) → F11; per-window timeout, then next.
  *
  * @param {object} client - Connected glazewm-js WmClient
  * @param {object} config - Loaded config (workspaces[].children[] tree)
- * @param {{ log: (msg: string) => void }} opts
+ * @param {{ log: (msg: string) => void, originalWorkspace?: string|null }} opts
  */
 export async function runOpenPhase(client, config, opts = {}) {
   const log = opts.log ?? (() => {});
@@ -124,80 +264,12 @@ export async function runOpenPhase(client, config, opts = {}) {
 
   log('--- Opening applications ---');
 
+  if (isWindows) {
+    await getStartAppsDict();
+  }
+
   for (const workspace of config.workspaces ?? []) {
-    const wsName = workspace?.name;
-    const applications = flattenApplications(workspace);
-    if (!wsName || applications.length === 0) continue;
-
-    log(`Focusing workspace ${wsName}`);
-    await client.runCommand('focus --workspace ' + wsName);
-    await delay(BEFORE_OPEN_FOCUS_DELAY_MS);
-
-    let expectedWindowCount = 0;
-    for (const app of applications) {
-      const application = app?.application ?? app?.path;
-      const name = app?.title ?? app?.name ?? 'Unknown';
-
-      if (!application || application === 'FILL ME IN') {
-        log(`Skipping ${name}: no application`);
-        continue;
-      }
-
-      let child;
-      if (application.endsWith('.exe')) {
-        const baseArgs = Array.isArray(app?.args) ? [...app.args] : [];
-        let args = baseArgs;
-        if (app?.link) {
-          args = [...baseArgs, '-new-window'];
-          if (app?.fullscreen) args.push('-kiosk');
-          args.push(app.link);
-        }
-        log(`Opening: ${name}${app?.link ? ' ' + app.link : ''}`);
-        child = spawn(application, args, { detached: true, stdio: 'ignore', shell: false });
-      } else if (application.includes('!')) {
-        log(`Opening: ${name} (AUMID)`);
-        child = spawn('explorer.exe', ['shell:AppsFolder\\' + application], { detached: true, stdio: 'ignore', shell: false });
-      } else {
-        if (!isWindows) {
-          log(`Skipping ${name}: launch by name is Windows-only`);
-          continue;
-        }
-        const dict = await getStartAppsDict();
-        const aumid = dict?.[application];
-        if (aumid == null) {
-          log(`App not found: ${application}`);
-          if (originalWorkspace) {
-            log(`Focusing back to workspace ${originalWorkspace} (after error)`);
-            await client.runCommand('focus --workspace ' + originalWorkspace).catch(() => {});
-            await delay(300);
-          }
-          process.exit(1);
-        }
-        log(`Opening: ${name}`);
-        child = spawn('explorer.exe', ['shell:AppsFolder\\' + aumid], { detached: true, stdio: 'ignore', shell: false });
-      }
-
-      child.on('error', async (err) => {
-        const msg = err?.message ?? String(err);
-        log(`Failed to open ${name}: ${msg}`);
-        if (originalWorkspace) {
-          log(`Focusing back to workspace ${originalWorkspace} (after spawn error)`);
-          try {
-            await client.runCommand('focus --workspace ' + originalWorkspace);
-            await delay(300);
-          } catch (_) {}
-        }
-        process.exit(1);
-      });
-      child.unref();
-      expectedWindowCount += 1;
-      await delay(WAIT_TIME_BETWEEN_APPS_MS);
-    }
-
-    if (expectedWindowCount > 0) {
-      log(`Waiting for windows in workspace ${wsName} (max ${MAX_WAIT_FOR_WINDOWS_MS / 1000}s)...`);
-      await waitUntilWindowsUp(client, wsName, expectedWindowCount, MAX_WAIT_FOR_WINDOWS_MS, { log });
-    }
+    await openAppsInWorkspace(client, workspace, { ...opts, client, originalWorkspace });
   }
 
   if (originalWorkspace) {

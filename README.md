@@ -28,7 +28,7 @@ npm run parse -- workspace.json 2 -o config.json
   - **split**: `type: "split"`, `tilingDirection`, `tilingSize` (ratio 0–1), `children[]`
   - **window**: `type: "window"`, `title`, `application`, `tilingSize`; optional `args`, `link`, `fullscreen`.
 - **`application`** (required for launch): one of
-  - **.exe path** — launched directly (link/fullscreen/args apply; e.g. Firefox with URL).
+  - **.exe path** — launched directly (link/args apply). If `fullscreen: true`, the script waits for the window to open, focuses it, then sends F11 (no kiosk mode).
   - **AUMID** (string containing `!`) — launched via `explorer.exe shell:AppsFolder\<AUMID>`.
   - **Exact Start Menu name** (e.g. `"WhatsApp"`, `"Phone Link"`) — on Windows only; resolved once per run via `Get-StartApps | ConvertTo-Json`, exact match only, then launched via shell:AppsFolder. No PowerShell window is shown.
 - Open order = depth-first flatten of `children` (see `flattenApplications()`).
