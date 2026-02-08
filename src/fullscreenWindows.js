@@ -4,10 +4,8 @@
  */
 
 import { spawn } from 'child_process';
-import { delay, focusWindow, focusWorkspace } from './glazeCommon.js';
+import { focusWindow, focusWorkspace } from './glazeCommon.js';
 import { findAllWindows, flattenApplications } from './parseWorkspace.js';
-
-const FULLSCREEN_DELAY_MS = 500;
 
 const isWindows = process.platform === 'win32';
 
@@ -15,11 +13,14 @@ async function sendF11Key() {
   if (!isWindows) return;
   const cmd =
     'Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.SendKeys]::SendWait(\'{F11}\')';
-  spawn('powershell', ['-NoProfile', '-NonInteractive', '-WindowStyle', 'Hidden', '-Command', cmd], {
+  const child = spawn('powershell', ['-NoProfile', '-NonInteractive', '-WindowStyle', 'Hidden', '-Command', cmd], {
     windowsHide: true,
     stdio: 'ignore',
-  }).unref();
-  await delay(FULLSCREEN_DELAY_MS);
+  });
+  await new Promise((resolve, reject) => {
+    child.on('exit', resolve);
+    child.on('error', reject);
+  });
 }
 
 /**
