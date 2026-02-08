@@ -8,7 +8,7 @@
 import { delay, getWorkspace } from './glazeCommon.js';
 import { findAllWindows } from './parseWorkspace.js';
 
-const CLOSE_DELAY_MS = 50;
+const CLOSE_DELAY_MS = 300;
 
 /**
  * Clear all windows in the given workspace via GlazeWM close command.
@@ -31,7 +31,6 @@ export async function clearWorkspace(client, workspaceName, opts = {}) {
 
     log(`Closing window: ${title} (ID: ${id})`);
     await client.runCommand('close', id);
-    await delay(CLOSE_DELAY_MS);
     closed += 1;
   }
 
@@ -61,8 +60,10 @@ export async function runClearPhase(client, config, opts = {}) {
 
   log('--- Clearing Workspaces ---');
 
+  // TODO - subscribe on workspace instead of delay
   for (const name of workspacesToClear) {
     await clearWorkspace(client, name, { log });
+    await delay(CLOSE_DELAY_MS);
     const ws = await getWorkspace(client, name);
     if (ws !== null) throw new Error(`Workspace ${name} still has windows after clearing`);
   }

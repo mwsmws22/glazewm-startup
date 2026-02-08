@@ -13,7 +13,7 @@ import { delay, runWithWorkspaceRestore } from './glazeCommon.js';
 import { runOpenPhase } from './openWorkspaces.js';
 import { runLayoutPhase, runVerifyLayout } from './applyLayout.js';
 
-const CONNECT_DELAY_MS = 1000;
+const CONNECT_DELAY_MS = 100;
 
 /** All phases in default order. */
 export const PHASES = ['clear', 'open', 'layout', 'fullscreen'];
@@ -32,14 +32,12 @@ export async function loadConfig(configPath) {
  * Run selected phases in order. Loads config, creates client, runs each requested phase.
  *
  * @param {string} configPath - Path to config.json (default: config.json)
- * @param {{ log?: (msg: string) => void, phases?: string[], workspaceName?: string, skipLayout?: boolean }} opts
+ * @param {{ log?: (msg: string) => void, phases?: string[], workspaceName?: string }} opts
  *   - phases: list of 'clear' | 'open' | 'layout' | 'fullscreen' (default: all)
  *   - workspaceName: for fullscreen phase only, run fullscreen for this workspace (e.g. "2"); omit for all workspaces
- *   - skipLayout: when layout is run, skip applying layout (only if phases include layout)
  */
 export async function startupFromConfig(configPath = 'config.json', opts = {}) {
   const log = opts.log ?? ((msg) => console.log(msg));
-  const skipLayout = opts.skipLayout === true;
   const phases = opts.phases?.length ? opts.phases : PHASES;
   const workspaceName = opts.workspaceName;
 
