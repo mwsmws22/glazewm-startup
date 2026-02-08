@@ -39,10 +39,11 @@ export async function focusWorkspace(client, workspaceName, opts = {}) {
  * Focus a window (or container) by id, then wait so the WM can settle.
  * @param {object} client - WmClient
  * @param {string} containerId - Container/window id
- * @param {{ log?: (msg: string) => void }} opts
  */
-export async function focusWindow(client, containerId, opts = {}) {
-  if (!containerId) return;
+export async function focusWindow(client, containerId) {
+  if (!containerId) {
+    throw new Error('containerId is required');
+  }
   await client.runCommand('focus --container-id ' + containerId);
   await delay(FOCUS_DELAY_MS);
 }

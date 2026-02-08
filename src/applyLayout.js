@@ -151,10 +151,10 @@ async function buildTiledTree(client, ws, workspaceConfig, windowsByFlattenIndex
 
     try {
       await focusWorkspace(client, workspaceConfig?.name ?? '', { log });
-      await focusWindow(client, win0.id, { log });
+      await focusWindow(client, win0.id);
       await client.runCommand('set-tiling-direction ' + splitDirection);
       await delay(LAYOUT_DELAY_MS);
-      await focusWindow(client, win1.id, { log });
+      await focusWindow(client, win1.id);
       await client.runCommand('move --direction left', win1.id);
       await delay(LAYOUT_DELAY_MS);
     } catch (err) {
@@ -174,7 +174,7 @@ async function buildTiledTree(client, ws, workspaceConfig, windowsByFlattenIndex
       await client.runCommand('set-tiling-direction ' + splitDirection, split.id);
       await delay(LAYOUT_DELAY_MS);
       log(`Focusing split container for next grouping`);
-      await focusWindow(client, split.id, { log });
+      await focusWindow(client, split.id);
     }
     currentWindows = findAllWindows(wsCurrent);
   }
@@ -235,7 +235,7 @@ async function applyTilingSizes(client, wsName, workspaceConfig, queryWorkspace,
       const cmd = `resize --${axis} ${sign}${stepPct}%`;
       log(`Resize path [${path.join(',')}] child ${worstIndex}: ${cmd} (target ${((targetRatios[worstIndex] ?? 0) * 100).toFixed(2)}%, current ${((currentRatios[worstIndex] ?? 0) * 100).toFixed(2)}%)`);
 
-      await focusWindow(client, childId, { log });
+      await focusWindow(client, childId);
       await client.runCommand(cmd, childId);
       await delay(LAYOUT_DELAY_MS);
 

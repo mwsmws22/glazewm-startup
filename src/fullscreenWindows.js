@@ -4,12 +4,14 @@
  */
 
 import { spawn } from 'child_process';
-import { delay, focusWindow, focusWorkspace, FOCUS_DELAY_MS } from './glazeCommon.js';
+import { delay, focusWindow, focusWorkspace } from './glazeCommon.js';
 import { findAllWindows, flattenApplications } from './parseWorkspace.js';
+
+const FULLSCREEN_DELAY_MS = 500;
 
 const isWindows = process.platform === 'win32';
 
-function sendF11Key() {
+async function sendF11Key() {
   if (!isWindows) return;
   const cmd =
     'Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.SendKeys]::SendWait(\'{F11}\')';
@@ -17,6 +19,7 @@ function sendF11Key() {
     windowsHide: true,
     stdio: 'ignore',
   }).unref();
+  await delay(FULLSCREEN_DELAY_MS);
 }
 
 /**
@@ -56,57 +59,45 @@ export async function fullscreenWindowIds(client, windows, opts = {}) {
   log(`Fullscreening ${windows.length} window(s)...`);
   for (const { id, title } of windows) {
     log(`Fullscreening: ${title} (id: ${id})`);
-    await focusWindow(client, id, opts);
-    sendF11Key();
-    await delay(FOCUS_DELAY_MS);
+    await focusWindow(client, id);
+    await sendF11Key();
   }
 }
 
 /**
- * Fullscreen phase for all workspaces: get fullscreen window ids from each workspace, then fullscreen them all.
- * @param {object} client - WmClient
- * @param {object} config - Loaded config (workspaces[].children[] tree)
- * @param {{ log?: (msg: string) => void }} opts
- */
-export async function runFullscreenPhaseAll(client, config, opts = {}) {
-  const allFullscreenWindowIds = [];
-  for (const workspace of config.workspaces ?? []) {
-    const wsName = workspace?.name;
-    if (!wsName) continue;
-    const ids = await getFullscreenWindowIdsForWorkspace(client, workspace, wsName);
-    allFullscreenWindowIds.push(...ids);
-  }
-  await fullscreenWindowIds(client, allFullscreenWindowIds, opts);
-}
-
-/**
- * Fullscreen phase for one workspace: match current windows to config by index, then fullscreen those with fullscreen: true.
- * Use for testing (e.g. npm run fullscreen 2).
+ * Fullscreen phase: for each target workspace, focus the workspace then F11 its fullscreen windows.
+ * If opts.workspaceName is set, only that workspace is processed (with validation and log messages).
+ * Otherwise all workspaces in config are processed.
  *
  * @param {object} client - WmClient
  * @param {object} config - Loaded config (workspaces[].children[] tree)
- * @param {{ log?: (msg: string) => void, workspaceName: string }} opts - workspaceName is the single workspace (e.g. "2")
+ * @param {{ log?: (msg: string) => void, workspaceName?: string }} opts - workspaceName = single workspace (e.g. "2"); omit for all
  */
 export async function runFullscreenPhase(client, config, opts = {}) {
   const log = opts.log ?? (() => {});
   const workspaceName = opts.workspaceName;
-  if (!workspaceName) {
-    log('workspaceName is required (e.g. npm run fullscreen 2).');
-    return;
-  }
 
-  const workspace = config.workspaces?.find((w) => w?.name === workspaceName);
-  if (!workspace) {
+  const workspaces =
+    workspaceName != null && workspaceName !== ''
+      ? (config.workspaces ?? []).filter((w) => w?.name === workspaceName)
+      : config.workspaces ?? [];
+
+  if (workspaceName != null && workspaceName !== '' && workspaces.length === 0) {
     log(`Workspace "${workspaceName}" not found in config.`);
     return;
   }
 
-  const windows = await getFullscreenWindowIdsForWorkspace(client, workspace, workspaceName);
-  if (windows.length === 0) {
-    log(`No fullscreen windows in workspace "${workspaceName}" (config fullscreen: true matched to current windows).`);
-    return;
+  for (const workspace of workspaces) {
+    const wsName = workspace?.name;
+    if (!wsName) continue;
+    const windows = await getFullscreenWindowIdsForWorkspace(client, workspace, wsName);
+    if (windows.length === 0) {
+      if (workspaceName != null && workspaceName !== '') {
+        log(`No fullscreen windows in workspace "${wsName}" (config fullscreen: true matched to current windows).`);
+      }
+      continue;
+    }
+    await focusWorkspace(client, wsName, opts);
+    await fullscreenWindowIds(client, windows, opts);
   }
-
-  await focusWorkspace(client, workspaceName, opts);
-  await fullscreenWindowIds(client, windows, opts);
 }

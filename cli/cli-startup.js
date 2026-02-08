@@ -17,15 +17,12 @@ import { PHASES, startupFromConfig } from '../src/startup.js';
 
 const args = process.argv.slice(2);
 let configPath = 'config.json';
-let skipLayout = false;
 const positionals = [];
 
 for (let i = 0; i < args.length; i++) {
   const a = args[i];
   if (a === '--config' || a === '-c') {
     configPath = args[++i] ?? 'config.json';
-  } else if (a === '--no-layout') {
-    skipLayout = true;
   } else if (!a.startsWith('-')) {
     positionals.push(a);
   }

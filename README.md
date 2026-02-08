@@ -69,7 +69,7 @@ node cli/cli-startup.js clear open        # clear then open
 
 ### Layout (code)
 
-- **startup.js** – Load config, create client; runs only requested phases: `runClearPhase`, `runOpenPhase`, `runLayoutPhase` + `runVerifyLayout`, `runFullscreenPhaseAll` or `runFullscreenPhase(workspace)`.
+- **startup.js** – Load config, create client; runs only requested phases: `runClearPhase`, `runOpenPhase`, `runLayoutPhase` + `runVerifyLayout`, `runFullscreenPhase` (all workspaces or single workspace via opts.workspaceName).
 - **clearWorkspaces.js** – Clear phase.
 - **openWorkspaces.js** – Open phase.
 - **applyLayout.js** – Layout phase. Ref: [GlazeWM cheatsheet](https://nulldocs.com/windows/glazewm-cheatsheet/).
