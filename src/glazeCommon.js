@@ -19,10 +19,22 @@ export async function getCurrentWorkspace(client) {
 }
 
 /**
+ * Get a workspace by name.
+ * @param {object} client - WmClient
+ * @param {string} workspaceName - Workspace name (e.g. "2")
+ * @returns {Promise<object|null>} The workspace object, or null if not found or workspaceName is falsy
+ */
+export async function getWorkspace(client, workspaceName) {
+  const { workspaces } = await client.queryWorkspaces();
+  return workspaces?.find((w) => w?.name === workspaceName) ?? null;
+}
+
+/**
  * Focus a workspace by name, then wait so the WM can settle.
  * @param {object} client - WmClient
  * @param {string} workspaceName - Workspace name (e.g. "2")
  * @param {{ log?: (msg: string) => void }} opts
+ * @returns {Promise<object|null>} The focused workspace object; null only if workspaceName is falsy; throws if not found when name given
  */
 export async function focusWorkspace(client, workspaceName, opts = {}) {
   const log = opts.log ?? (() => {});
@@ -30,6 +42,11 @@ export async function focusWorkspace(client, workspaceName, opts = {}) {
     log(`Focusing workspace ${workspaceName}`);
     await client.runCommand('focus --workspace ' + workspaceName);
   }
+  const ws = await getWorkspace(client, workspaceName);
+  if (workspaceName != null && workspaceName !== '' && ws == null) {
+    throw new Error(`Workspace "${workspaceName}" not found`);
+  }
+  return ws;
 }
 
 /**
@@ -72,6 +89,7 @@ export async function runWithWorkspaceRestore(client, opts, fn) {
   } catch (err) {
     const log = opts.log ?? (() => {});
     log(err?.message ?? String(err));
+    if (err?.stack) log(err.stack);
     try {
       await doRestoreAndClose();
     } catch (_) {}

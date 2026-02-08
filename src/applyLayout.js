@@ -259,17 +259,10 @@ export async function runLayoutPhase(client, config, opts = {}) {
     const applications = flattenApplications(workspace);
     if (!wsName || applications.length === 0) continue;
 
-    await focusWorkspace(client, wsName, { log });
+    const ws = await focusWorkspace(client, wsName, { log });
 
     await setWorkspaceTilingDirection(client, wsName, targetTilingDirection, { log });
     await delay(LAYOUT_DELAY_MS);
-
-    const { workspaces } = await client.queryWorkspaces();
-    const ws = workspaces?.find((w) => w?.name === wsName);
-    if (!ws) {
-      log(`Workspace ${wsName} not found`);
-      continue;
-    }
 
     const windows = findAllWindows(ws);
     if (windows.length !== applications.length) {
