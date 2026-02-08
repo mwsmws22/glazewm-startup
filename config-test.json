@@ -1,0 +1,73 @@
+{
+  "workspaces": [
+    {
+      "name": "2",
+      "tilingDirection": "horizontal",
+      "children": [
+        {
+          "type": "split",
+          "tilingDirection": "vertical",
+          "tilingSize": 0.18350004,
+          "children": [
+            {
+              "type": "window",
+              "title": "WhatsApp",
+              "application": "FILL ME IN",
+              "tilingSize": 0.5
+            },
+            {
+              "type": "window",
+              "title": "Phone Link",
+              "application": "FILL ME IN",
+              "tilingSize": 0.5
+            }
+          ]
+        },
+        {
+          "type": "window",
+          "title": "Inbox | Proton Mail — Mozilla Firefox",
+          "application": "FILL ME IN",
+          "tilingSize": 0.44930968
+        },
+        {
+          "type": "split",
+          "tilingDirection": "vertical",
+          "tilingSize": 0.18359514,
+          "children": [
+            {
+              "type": "window",
+              "title": "Instagram • Messages — Mozilla Firefox",
+              "application": "FILL ME IN",
+              "tilingSize": 0.5
+            },
+            {
+              "type": "window",
+              "title": "Messenger — Mozilla Firefox",
+              "application": "FILL ME IN",
+              "tilingSize": 0.5
+            }
+          ]
+        },
+        {
+          "type": "split",
+          "tilingDirection": "vertical",
+          "tilingSize": 0.18359514,
+          "children": [
+            {
+              "type": "window",
+              "title": "LINE",
+              "application": "FILL ME IN",
+              "tilingSize": 0.5
+            },
+            {
+              "type": "window",
+              "title": "Voice - Messages — Mozilla Firefox",
+              "application": "FILL ME IN",
+              "tilingSize": 0.5
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

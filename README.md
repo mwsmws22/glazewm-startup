@@ -9,8 +9,8 @@ Parses the output of `glazewm query workspaces` (or the glazewm-js equivalent) a
 ### Usage
 
 ```bash
-node src/cli-parse.js workspace.json 2 --output config.json
-node src/cli-parse.js workspace.json 2 3 -o config.json -v
+node cli/cli-parse.js workspace.json 2 --output config.json
+node cli/cli-parse.js workspace.json 2 3 -o config.json -v
 ```
 
 Or via npm:
@@ -42,42 +42,38 @@ npm test
 
 Runs Node built-in tests; expects `workspace.json` in the project root.
 
-## Startup (clear → open → layout)
+## Startup (phases: clear → open → layout → fullscreen)
 
-Main chain: **clear** workspaces (close all windows, with focus-then-close for stubborn apps), **open** applications (focus workspace, spawn apps in depth-first order, wait for windows), then **layout** (tiled only: set workspace tiling direction, use **move** + **toggle-tiling-direction** to build the split tree from config, then optional **resize** to approximate `tiling_size` ratios).
+One CLI runs **phases** in order. Phases: **clear** (close all windows), **open** (spawn apps per config), **layout** (tile and resize to match config), **fullscreen** (F11 for windows with `fullscreen: true`).
 
 **Requires:** GlazeWM running, and `config.json` (or path via `--config`).
 
 ### Usage
 
-```bash
-node src/cli-startup.js
-node src/cli-startup.js --config config.json
-```
-
-Or via npm:
+Run all phases (default):
 
 ```bash
 npm run startup
-npm run startup -- --config config.json
+node cli/cli-startup.js [--config config.json]
 ```
 
-### Clear only (no open)
-
-For testing or when you only want to close windows:
+Run only specific phases (positional args):
 
 ```bash
-npm run clear
-node src/cli-clear.js --config config.json
+npm run clear                              # clear only
+npm run fullscreen 2                       # fullscreen phase, workspace 2 only
+node cli/cli-startup.js clear              # clear only
+node cli/cli-startup.js fullscreen 2       # fullscreen workspace 2
+node cli/cli-startup.js clear open        # clear then open
 ```
 
 ### Layout (code)
 
-- **startup.js** – Main chain: `loadConfig`, create client, `runClearPhase` → `runOpenPhase` → `runLayoutPhase`, exit.
-- **clearWorkspaces.js** – Clear phase: `runClearPhase`, `clearWorkspace`, `clearWorkspaceWithFocus`, `getCurrentWorkspace`.
-- **openWorkspaces.js** – Open phase: `runOpenPhase` (focus workspace, launch each `application` as exe / AUMID / or by name via Get-StartApps once per run, wait for windows via WINDOW_MANAGED).
-- **applyLayout.js** – Layout phase: `runLayoutPhase` (set workspace tiling direction, then `size --width/height` and `set-tiling`/`set-floating` per window to match config). Windows matched to config by index. Ref: [GlazeWM cheatsheet](https://nulldocs.com/windows/glazewm-cheatsheet/).
-- **cli-startup.js** – CLI entry for full chain; **cli-clear.js** – CLI for clear-only.
+- **startup.js** – Load config, create client; runs only requested phases: `runClearPhase`, `runOpenPhase`, `runLayoutPhase` + `runVerifyLayout`, `runFullscreenPhaseAll` or `runFullscreenPhase(workspace)`.
+- **clearWorkspaces.js** – Clear phase.
+- **openWorkspaces.js** – Open phase.
+- **applyLayout.js** – Layout phase. Ref: [GlazeWM cheatsheet](https://nulldocs.com/windows/glazewm-cheatsheet/).
+- **cli/cli-startup.js** – Single CLI; pass phases as positionals (e.g. `clear`, `fullscreen 2`); npm scripts `startup`, `clear`, `fullscreen` call it with the right phases.
 
 ## Requirements
 

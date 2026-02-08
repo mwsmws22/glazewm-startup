@@ -8,12 +8,15 @@
 import { WmClient } from 'glazewm';
 import { readFile } from 'fs/promises';
 import { runClearPhase } from './clearWorkspaces.js';
-import { runFullscreenPhaseAll } from './fullscreenWindows.js';
+import { runFullscreenPhaseAll, runFullscreenPhase } from './fullscreenWindows.js';
 import { delay, runWithWorkspaceRestore } from './glazeCommon.js';
 import { runOpenPhase } from './openWorkspaces.js';
 import { runLayoutPhase, runVerifyLayout } from './applyLayout.js';
 
 const CONNECT_DELAY_MS = 1000;
+
+/** All phases in default order. */
+export const PHASES = ['clear', 'open', 'layout', 'fullscreen'];
 
 /**
  * Load config from path.
@@ -26,15 +29,19 @@ export async function loadConfig(configPath) {
 }
 
 /**
- * Run the full startup chain: clear -> open.
- * Loads config, creates client, runs runClearPhase then runOpenPhase.
+ * Run selected phases in order. Loads config, creates client, runs each requested phase.
  *
  * @param {string} configPath - Path to config.json (default: config.json)
- * @param {{ log: (msg: string) => void }} opts
+ * @param {{ log?: (msg: string) => void, phases?: string[], workspaceName?: string, skipLayout?: boolean }} opts
+ *   - phases: list of 'clear' | 'open' | 'layout' | 'fullscreen' (default: all)
+ *   - workspaceName: for fullscreen phase only, run fullscreen for this workspace (e.g. "2"); omit for all workspaces
+ *   - skipLayout: when layout is run, skip applying layout (only if phases include layout)
  */
 export async function startupFromConfig(configPath = 'config.json', opts = {}) {
   const log = opts.log ?? ((msg) => console.log(msg));
   const skipLayout = opts.skipLayout === true;
+  const phases = opts.phases?.length ? opts.phases : PHASES;
+  const workspaceName = opts.workspaceName;
 
   const config = await loadConfig(configPath);
 
@@ -51,15 +58,21 @@ export async function startupFromConfig(configPath = 'config.json', opts = {}) {
   await delay(CONNECT_DELAY_MS);
   log('Querying workspaces and windows...');
 
-  await runWithWorkspaceRestore(client, { log }, async (client, opts) => {
-    await runClearPhase(client, config, { log });
-    await runOpenPhase(client, config, opts);
-    if (!skipLayout) {
-      await runLayoutPhase(client, config, opts);
+  const runOpts = { log, workspaceName };
+
+  await runWithWorkspaceRestore(client, runOpts, async (client, innerOpts) => {
+    if (phases.includes('clear')) await runClearPhase(client, config, { log });
+    if (phases.includes('open')) await runOpenPhase(client, config, innerOpts);
+    if (phases.includes('layout')) {
+      await runLayoutPhase(client, config, innerOpts);
       await runVerifyLayout(client, config, { log });
-    } else {
-      log('Skipping layout (--no-layout)');
     }
-    await runFullscreenPhaseAll(client, config, opts);
+    if (phases.includes('fullscreen')) {
+      if (workspaceName != null && workspaceName !== '') {
+        await runFullscreenPhase(client, config, { ...innerOpts, workspaceName });
+      } else {
+        await runFullscreenPhaseAll(client, config, innerOpts);
+      }
+    }
   });
 }

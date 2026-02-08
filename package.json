@@ -5,10 +5,10 @@
   "type": "module",
   "main": "src/parseWorkspace.js",
   "scripts": {
-    "parse": "node src/cli-parse.js",
-    "startup": "node src/cli-startup.js",
-    "clear": "node src/cli-clear.js",
-    "fullscreen": "node src/cli-fullscreen.js",
+    "parse": "node cli/cli-parse.js",
+    "startup": "node cli/cli-startup.js",
+    "clear": "node cli/cli-startup.js clear",
+    "fullscreen": "node cli/cli-startup.js fullscreen",
     "test": "node --test src/parseWorkspace.test.js"
   },
   "keywords": ["glazewm", "windows", "tiling", "workspace"],

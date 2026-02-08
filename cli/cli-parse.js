@@ -3,16 +3,16 @@
  * CLI: Parse GlazeWM workspace JSON and write config.json.
  *
  * Usage:
- *   node src/cli-parse.js <workspace_json_file> <workspace_number> [<workspace_number> ...]
- *   node src/cli-parse.js workspace.json 2
- *   node src/cli-parse.js workspace.json 2 3 --output config.json
+ *   node cli/cli-parse.js <workspace_json_file> <workspace_number> [<workspace_number> ...]
+ *   node cli/cli-parse.js workspace.json 2
+ *   node cli/cli-parse.js workspace.json 2 3 --output config.json
  *
  * Options:
  *   --output, -o   Output file (default: config.json)
  *   --verbose, -v  Log what we're doing
  */
 
-import { parseWorkspaceFromFile } from './parseWorkspace.js';
+import { parseWorkspaceFromFile } from '../src/parseWorkspace.js';
 import { writeFile, rename, unlink } from 'fs/promises';
 
 const args = process.argv.slice(2);
