@@ -42,7 +42,7 @@ function containerToConfigNode(node) {
     const out = {
       type: 'window',
       title: node.title ?? '',
-      path: node.processName ? 'FILL ME IN' : '',
+      application: node.processName ? 'FILL ME IN' : '',
       tilingSize: node.tilingSize ?? 1,
     };
     if (Array.isArray(node.args) && node.args.length > 0) out.args = node.args;
@@ -62,7 +62,7 @@ function containerToConfigNode(node) {
 /**
  * Flatten workspace config tree to list of window nodes (depth-first) for open order.
  * @param {object} workspaceConfig - Workspace with children[] (split or window)
- * @returns {object[]} - List of window nodes { type: 'window', title, path?, tilingSize }
+ * @returns {object[]} - List of window nodes { type: 'window', title, application?, tilingSize }
  */
 export function flattenApplications(workspaceConfig) {
   const list = [];

@@ -3,7 +3,7 @@
  *
  * Opens applications defined in config for each workspace:
  * focus workspace, spawn each app, then wait for windows via WINDOW_MANAGED events (or max 30s).
- * We use child_process.spawn instead of GlazeWM shell-exec to avoid IPC quoting issues.
+ * Config uses "application": exe path (.exe), AUMID (contains !), or exact Start Menu display name (Windows).
  */
 
 import { spawn } from 'child_process';
@@ -14,8 +14,61 @@ const BEFORE_OPEN_FOCUS_DELAY_MS = 500;
 const WAIT_TIME_BETWEEN_APPS_MS = 1000;
 const MAX_WAIT_FOR_WINDOWS_MS = 60_000;
 
+const isWindows = process.platform === 'win32';
+
 function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/** One-time in-memory dict: Get-StartApps Name → AppId (AUMID). Windows only. */
+let startAppsDict = null;
+
+/**
+ * Get Start Menu apps as dict (Name → AppId). Runs PowerShell silently once per run.
+ * @returns {Promise<Record<string, string>|null>} Name → AUMID, or null on error/non-Windows
+ */
+async function getStartAppsDict() {
+  if (!isWindows) return null;
+  if (startAppsDict !== null) return startAppsDict;
+
+  const cmd = '[Console]::OutputEncoding = [System.Text.Encoding]::UTF8; Get-StartApps | ConvertTo-Json';
+  const child = spawn('powershell', ['-NoProfile', '-NonInteractive', '-WindowStyle', 'Hidden', '-Command', cmd], {
+    windowsHide: true,
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+
+  const chunks = [];
+  child.stdout?.on('data', (chunk) => chunks.push(chunk));
+  const stderr = [];
+  child.stderr?.on('data', (chunk) => stderr.push(chunk));
+
+  try {
+    await new Promise((resolve, reject) => {
+      child.on('error', reject);
+      child.on('close', (code) => (code === 0 ? resolve() : reject(new Error(`PowerShell exit ${code}`))));
+    });
+  } catch (_) {
+    startAppsDict = {};
+    return startAppsDict;
+  }
+
+  let raw = Buffer.concat(chunks).toString('utf-8').trim();
+  if (raw.charCodeAt(0) === 0xfeff) raw = raw.slice(1);
+  try {
+    const parsed = JSON.parse(raw);
+    const arr = Array.isArray(parsed) ? parsed : parsed ? [parsed] : [];
+    startAppsDict = {};
+    for (const item of arr) {
+      const name = item?.Name ?? item?.name;
+      const appId = item?.AppId ?? item?.AppID ?? item?.appId;
+      if (name != null && appId != null) {
+        startAppsDict[String(name).trim()] = String(appId).trim();
+      }
+    }
+  } catch (_) {
+    startAppsDict = {};
+  }
+  return startAppsDict;
 }
 
 /**
@@ -59,16 +112,15 @@ async function waitUntilWindowsUp(client, workspaceName, expectedCount, maxWaitM
 
 /**
  * Open applications in each workspace from config.
- * For each workspace: focus workspace, then shell-exec each app (path + args), delay between apps.
+ * "application" can be: .exe path (spawn directly), AUMID (explorer shell:AppsFolder), or exact Start Menu name (Windows).
  *
  * @param {object} client - Connected glazewm-js WmClient
- * @param {object} config - Loaded config (workspaces[].applications[], settings.wait_time_between_apps)
+ * @param {object} config - Loaded config (workspaces[].children[] tree)
  * @param {{ log: (msg: string) => void }} opts
  */
 export async function runOpenPhase(client, config, opts = {}) {
   const log = opts.log ?? (() => {});
   const originalWorkspace = opts.originalWorkspace ?? null;
-  const waitTimeMs = (config.settings?.wait_time_between_apps ?? 1.0) * 1000;
 
   log('--- Opening applications ---');
 
@@ -83,27 +135,48 @@ export async function runOpenPhase(client, config, opts = {}) {
 
     let expectedWindowCount = 0;
     for (const app of applications) {
-      const path = app?.path;
+      const application = app?.application ?? app?.path;
       const name = app?.title ?? app?.name ?? 'Unknown';
-      const baseArgs = Array.isArray(app?.args) ? [...app.args] : [];
-      let args = baseArgs;
-      if (app?.link) {
-        args = [...baseArgs, '-new-window'];
-        if (app?.fullscreen) args.push('-kiosk');
-        args.push(app.link);
-      }
 
-      if (!path || path === 'FILL ME IN') {
-        log(`Skipping ${name}: no executable path`);
+      if (!application || application === 'FILL ME IN') {
+        log(`Skipping ${name}: no application`);
         continue;
       }
 
-      log(`Opening: ${name}${app?.link ? ' ' + app.link : ''}`);
-      const child = spawn(path, args, {
-        detached: true,
-        stdio: 'ignore',
-        shell: false,
-      });
+      let child;
+      if (application.endsWith('.exe')) {
+        const baseArgs = Array.isArray(app?.args) ? [...app.args] : [];
+        let args = baseArgs;
+        if (app?.link) {
+          args = [...baseArgs, '-new-window'];
+          if (app?.fullscreen) args.push('-kiosk');
+          args.push(app.link);
+        }
+        log(`Opening: ${name}${app?.link ? ' ' + app.link : ''}`);
+        child = spawn(application, args, { detached: true, stdio: 'ignore', shell: false });
+      } else if (application.includes('!')) {
+        log(`Opening: ${name} (AUMID)`);
+        child = spawn('explorer.exe', ['shell:AppsFolder\\' + application], { detached: true, stdio: 'ignore', shell: false });
+      } else {
+        if (!isWindows) {
+          log(`Skipping ${name}: launch by name is Windows-only`);
+          continue;
+        }
+        const dict = await getStartAppsDict();
+        const aumid = dict?.[application];
+        if (aumid == null) {
+          log(`App not found: ${application}`);
+          if (originalWorkspace) {
+            log(`Focusing back to workspace ${originalWorkspace} (after error)`);
+            await client.runCommand('focus --workspace ' + originalWorkspace).catch(() => {});
+            await delay(300);
+          }
+          process.exit(1);
+        }
+        log(`Opening: ${name}`);
+        child = spawn('explorer.exe', ['shell:AppsFolder\\' + aumid], { detached: true, stdio: 'ignore', shell: false });
+      }
+
       child.on('error', async (err) => {
         const msg = err?.message ?? String(err);
         log(`Failed to open ${name}: ${msg}`);

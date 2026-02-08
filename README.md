@@ -26,9 +26,13 @@ npm run parse -- workspace.json 2 -o config.json
 - `workspaces[]`: `name`, `tilingDirection`, `children[]` (camelCase, same style as workspace query).
 - Each child is either:
   - **split**: `type: "split"`, `tilingDirection`, `tilingSize` (ratio 0–1), `children[]`
-  - **window**: `type: "window"`, `title`, `path` (or `"FILL ME IN"`), `tilingSize`; optional `args`, `link`.
+  - **window**: `type: "window"`, `title`, `application`, `tilingSize`; optional `args`, `link`, `fullscreen`.
+- **`application`** (required for launch): one of
+  - **.exe path** — launched directly (link/fullscreen/args apply; e.g. Firefox with URL).
+  - **AUMID** (string containing `!`) — launched via `explorer.exe shell:AppsFolder\<AUMID>`.
+  - **Exact Start Menu name** (e.g. `"WhatsApp"`, `"Phone Link"`) — on Windows only; resolved once per run via `Get-StartApps | ConvertTo-Json`, exact match only, then launched via shell:AppsFolder. No PowerShell window is shown.
 - Open order = depth-first flatten of `children` (see `flattenApplications()`).
-- No `settings` in config; delays (e.g. wait between apps) are constants in code (e.g. `WAIT_TIME_BETWEEN_APPS_MS` in `openWorkspaces.js`).
+- No `settings` in config; delays are constants in code (e.g. `WAIT_TIME_BETWEEN_APPS_MS` in `openWorkspaces.js`).
 
 ### Tests
 
@@ -71,7 +75,7 @@ node src/cli-clear.js --config config.json
 
 - **startup.js** – Main chain: `loadConfig`, create client, `runClearPhase` → `runOpenPhase` → `runLayoutPhase`, exit.
 - **clearWorkspaces.js** – Clear phase: `runClearPhase`, `clearWorkspace`, `clearWorkspaceWithFocus`, `getCurrentWorkspace`.
-- **openWorkspaces.js** – Open phase: `runOpenPhase` (focus workspace, spawn apps, wait for windows via WINDOW_MANAGED).
+- **openWorkspaces.js** – Open phase: `runOpenPhase` (focus workspace, launch each `application` as exe / AUMID / or by name via Get-StartApps once per run, wait for windows via WINDOW_MANAGED).
 - **applyLayout.js** – Layout phase: `runLayoutPhase` (set workspace tiling direction, then `size --width/height` and `set-tiling`/`set-floating` per window to match config). Windows matched to config by index. Ref: [GlazeWM cheatsheet](https://nulldocs.com/windows/glazewm-cheatsheet/).
 - **cli-startup.js** – CLI entry for full chain; **cli-clear.js** – CLI for clear-only.
 
