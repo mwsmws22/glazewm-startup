@@ -5,17 +5,13 @@
  * close by ID, then for any remaining (e.g. WhatsApp) focus workspace and close, then focus back.
  */
 
-import { getCurrentWorkspace } from './glazeCommon.js';
+import { delay, getCurrentWorkspace } from './glazeCommon.js';
 import { findAllWindows } from './parseWorkspace.js';
 
 export { getCurrentWorkspace };
 
 const CLOSE_DELAY_MS = 500;
 const AFTER_FOCUS_DELAY_MS = 500;
-
-function delay(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
 
 /**
  * Focus workspace, close all windows in it, then focus back to original.

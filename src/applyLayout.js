@@ -10,6 +10,7 @@
  * - Optionally use resize (--width / --height with +/- N%) to approximate tiling_size ratios
  */
 
+import { delay } from './glazeCommon.js';
 import { findAllWindows, flattenApplications } from './parseWorkspace.js';
 
 const LAYOUT_DELAY_MS = 500;
@@ -17,10 +18,6 @@ const LAYOUT_DELAY_MS = 500;
 const TOLERANCE_RATIO = 0.002;
 /** Max resize iterations per container to avoid infinite loops. */
 const MAX_RESIZE_ITERATIONS = 80;
-
-function delay(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
 
 /**
  * Set workspace tiling direction to match config by toggling the workspace container until query matches.

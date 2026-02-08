@@ -3,9 +3,9 @@
  * Shared by openWorkspaces, clearWorkspaces, fullscreen CLI, etc.
  */
 
-const FOCUS_DELAY_MS = 500;
+export const FOCUS_DELAY_MS = 500;
 
-function delay(ms) {
+export function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 

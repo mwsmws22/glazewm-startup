@@ -1,0 +1,10 @@
+---
+description: Avoid repeated code when possible
+alwaysApply: true
+---
+
+# Avoid repeated code
+
+- Prefer reusing existing functions or helpers instead of duplicating logic.
+- If two code paths do the same thing (e.g. "focus workspace" and "restore workspace"), use one implementation (e.g. `focusWorkspace`) for both.
+- Extract shared logic into a single place; call it from all call sites.

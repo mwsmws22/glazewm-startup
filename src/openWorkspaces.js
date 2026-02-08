@@ -3,23 +3,17 @@
  *
  * Opens applications defined in config for each workspace:
  * focus workspace, spawn each app, wait for window via WINDOW_MANAGED (per-window timeout).
- * After all windows are open, fullscreens each window with fullscreen: true (F11) so they have time to load.
  * Config uses "application": exe path (.exe), AUMID (contains !), or exact Start Menu display name (Windows).
  */
 
 import { spawn } from 'child_process';
 import { WmEventType } from 'glazewm';
-import { focusWorkspace } from './glazeCommon.js';
+import { delay, focusWorkspace } from './glazeCommon.js';
 import { findAllWindows, flattenApplications } from './parseWorkspace.js';
 
-const FOCUS_DELAY_MS = 500;
 const PER_WINDOW_TIMEOUT_MS = 60_000;
 
 const isWindows = process.platform === 'win32';
-
-function delay(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
 
 /** One-time in-memory dict: Get-StartApps Name → AppId (AUMID). Windows only. */
 let startAppsDict = null;
@@ -108,41 +102,6 @@ async function waitForOneNewWindow(client, workspaceName, previousIds) {
 }
 
 /**
- * Send F11 key to the foreground window (Windows). GlazeWM must have focused the window first.
- */
-function sendF11Key() {
-  if (!isWindows) return;
-  const cmd =
-    'Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.SendKeys]::SendWait(\'{F11}\')';
-  spawn('powershell', ['-NoProfile', '-NonInteractive', '-WindowStyle', 'Hidden', '-Command', cmd], {
-    windowsHide: true,
-    stdio: 'ignore',
-  }).unref();
-}
-
-/**
- * Fullscreen a list of windows by id: focus each, send F11, delay between.
- * Shared by runOpenPhase (after open) and CLI fullscreen (single workspace).
- *
- * @param {object} client - WmClient
- * @param {string[]} windowIds - Container ids to fullscreen
- * @param {{ log: (msg: string) => void }} opts
- */
-export async function fullscreenWindowIds(client, windowIds, opts = {}) {
-  const log = opts.log ?? (() => {});
-  if (windowIds.length === 0) return;
-  log(`Fullscreening ${windowIds.length} window(s)...`);
-  for (const windowId of windowIds) {
-    log(`Fullscreening ${windowId}`);
-    await client.runCommand('focus --container-id ' + windowId);
-    await delay(FOCUS_DELAY_MS);
-    sendF11Key();
-    await delay(FOCUS_DELAY_MS);
-  }
-  log('Done.');
-}
-
-/**
  * Resolve application (exe / AUMID / name), spawn process. Handles child.on('error') via opts.onSpawnError and child.unref().
  * For by-name launch on non-Windows, throws. For by-name when app not found, throws.
  * Caller should pass onSpawnError so spawn errors reject a promise and the wrapper can restore workspace.
@@ -198,19 +157,16 @@ function launchApplication(app, opts = {}) {
 
 /**
  * Open all apps in one workspace: focus workspace, then for each app launch → wait for window.
- * Does not send F11 here; fullscreen window ids are returned for a later fullscreen phase.
- * On per-window timeout, exits process.
+ * Does not collect fullscreen ids; use getFullscreenWindowIdsForWorkspace after all workspaces are open.
  * @param {object} client - WmClient
  * @param {object} workspace - Config workspace node (name, children / flattenApplications)
  * @param {{ log: (msg: string) => void, client: object, originalWorkspace: string|null }} opts
- * @returns {Promise<string[]>} Window ids that have fullscreen: true in config (for F11 at end)
  */
 async function openAppsInWorkspace(client, workspace, opts = {}) {
   const log = opts.log ?? (() => {});
   const wsName = workspace?.name;
   const applications = flattenApplications(workspace);
-  const fullscreenWindowIds = [];
-  if (!wsName || applications.length === 0) return fullscreenWindowIds;
+  if (!wsName || applications.length === 0) return;
 
   await focusWorkspace(client, wsName, opts);
 
@@ -247,19 +203,12 @@ async function openAppsInWorkspace(client, workspace, opts = {}) {
       log(`Timed out waiting for window in ${wsName} (${name})`);
       throw new Error(`Timed out waiting for window in ${wsName} (${name})`);
     }
-
-    if (app?.fullscreen) {
-      fullscreenWindowIds.push(newWindowId);
-    }
   }
-
-  return fullscreenWindowIds;
 }
 
 /**
  * Open applications in each workspace from config.
  * For every window: open app → wait for window (WINDOW_MANAGED); per-window timeout.
- * After all windows are open, fullscreen each window that has fullscreen: true in config (F11).
  *
  * @param {object} client - Connected glazewm-js WmClient
  * @param {object} config - Loaded config (workspaces[].children[] tree)
@@ -275,59 +224,10 @@ export async function runOpenPhase(client, config, opts = {}) {
     await getStartAppsDict();
   }
 
-  const allFullscreenWindowIds = [];
   for (const workspace of config.workspaces ?? []) {
-    const ids = await openAppsInWorkspace(client, workspace, { ...opts, client, originalWorkspace });
-    allFullscreenWindowIds.push(...ids);
+    await openAppsInWorkspace(client, workspace, { ...opts, client, originalWorkspace });
   }
-
-  await fullscreenWindowIds(client, allFullscreenWindowIds, opts);
 
   log('Done.');
 }
 
-/**
- * Fullscreen-only phase for one workspace: match current windows to config by index, then fullscreen those with fullscreen: true.
- * Use for testing the fullscreen step in isolation (e.g. npm run fullscreen 2).
- *
- * @param {object} client - Connected glazewm-js WmClient
- * @param {object} config - Loaded config (workspaces[].children[] tree)
- * @param {{ log: (msg: string) => void, workspaceName: string, originalWorkspace?: string|null }} opts - workspaceName is the single workspace (e.g. "2"); originalWorkspace is restored when done
- */
-export async function runFullscreenPhase(client, config, opts = {}) {
-  const log = opts.log ?? (() => {});
-  const workspaceName = opts.workspaceName;
-  if (!workspaceName) {
-    log('workspaceName is required (e.g. npm run fullscreen 2).');
-    return;
-  }
-
-  const workspace = config.workspaces?.find((w) => w?.name === workspaceName);
-  if (!workspace) {
-    log(`Workspace "${workspaceName}" not found in config.`);
-    return;
-  }
-
-  const { workspaces: liveWorkspaces } = await client.queryWorkspaces();
-  const liveWs = liveWorkspaces?.find((w) => w?.name === workspaceName);
-  if (!liveWs) {
-    log(`Workspace "${workspaceName}" not found in GlazeWM.`);
-    return;
-  }
-
-  await focusWorkspace(client, workspaceName, opts);
-
-  const apps = flattenApplications(workspace);
-  const windows = findAllWindows(liveWs);
-  const windowIds = [];
-  for (let i = 0; i < apps.length && i < windows.length; i++) {
-    if (apps[i]?.fullscreen && windows[i]?.id) windowIds.push(windows[i].id);
-  }
-
-  if (windowIds.length === 0) {
-    log(`No fullscreen windows in workspace "${workspaceName}" (config fullscreen: true matched to current windows).`);
-    return;
-  }
-
-  await fullscreenWindowIds(client, windowIds, opts);
-}

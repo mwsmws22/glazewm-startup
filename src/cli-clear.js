@@ -8,15 +8,11 @@
  */
 
 import { WmClient } from 'glazewm';
-import { runWithWorkspaceRestore } from './glazeCommon.js';
+import { delay, runWithWorkspaceRestore } from './glazeCommon.js';
 import { loadConfig } from './startup.js';
 import { runClearPhase } from './clearWorkspaces.js';
 
 const CONNECT_DELAY_MS = 1000;
-
-function delay(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
 
 const args = process.argv.slice(2);
 let configPath = 'config.json';

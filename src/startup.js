@@ -8,15 +8,12 @@
 import { WmClient } from 'glazewm';
 import { readFile } from 'fs/promises';
 import { runClearPhase } from './clearWorkspaces.js';
-import { runWithWorkspaceRestore } from './glazeCommon.js';
+import { runFullscreenPhaseAll } from './fullscreenWindows.js';
+import { delay, runWithWorkspaceRestore } from './glazeCommon.js';
 import { runOpenPhase } from './openWorkspaces.js';
 import { runLayoutPhase, runVerifyLayout } from './applyLayout.js';
 
 const CONNECT_DELAY_MS = 1000;
-
-function delay(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
 
 /**
  * Load config from path.
@@ -63,5 +60,6 @@ export async function startupFromConfig(configPath = 'config.json', opts = {}) {
     } else {
       log('Skipping layout (--no-layout)');
     }
+    await runFullscreenPhaseAll(client, config, opts);
   });
 }
