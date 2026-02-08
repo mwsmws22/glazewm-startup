@@ -10,10 +10,9 @@
  * - Optionally use resize (--width / --height with +/- N%) to approximate tiling_size ratios
  */
 
-import { delay, focusWorkspace, focusWindow } from './glazeCommon.js';
+import { focusWorkspace, focusWindow } from './glazeCommon.js';
 import { findAllWindows, flattenApplications } from './parseWorkspace.js';
 
-const LAYOUT_DELAY_MS = 500;
 /** Very tight tolerance for tiling_size ratio (aim for near-perfect match). */
 const TOLERANCE_RATIO = 0.002;
 /** Max resize iterations per container to avoid infinite loops. */
@@ -41,7 +40,6 @@ async function setWorkspaceTilingDirection(client, workspaceName, targetDirectio
 
     log(`Workspace ${workspaceName}: toggling tiling direction (current: ${current}, want: ${targetDirection})`);
     await client.runCommand('toggle-tiling-direction', ws.id);
-    await delay(LAYOUT_DELAY_MS);
   }
 }
 
@@ -58,21 +56,6 @@ function findSplitContainingTwoWindows(container, idA, idB) {
         return child;
       }
       const found = findSplitContainingTwoWindows(child, idA, idB);
-      if (found) return found;
-    }
-  }
-  return null;
-}
-
-/**
- * Find the parent container of a window by id (workspace or split).
- */
-function findParentOfWindow(container, windowId) {
-  const children = container?.children ?? [];
-  for (const child of children) {
-    if (child?.id === windowId) return container;
-    if (child?.type === 'split' || child?.type === 'workspace') {
-      const found = findParentOfWindow(child, windowId);
       if (found) return found;
     }
   }
@@ -153,10 +136,8 @@ async function buildTiledTree(client, ws, workspaceConfig, windowsByFlattenIndex
       await focusWorkspace(client, workspaceConfig?.name ?? '', { log });
       await focusWindow(client, win0.id);
       await client.runCommand('set-tiling-direction ' + splitDirection);
-      await delay(LAYOUT_DELAY_MS);
       await focusWindow(client, win1.id);
       await client.runCommand('move --direction left', win1.id);
-      await delay(LAYOUT_DELAY_MS);
     } catch (err) {
       log(`Error during grouping: ${err?.message ?? err}`);
       continue;
@@ -172,7 +153,6 @@ async function buildTiledTree(client, ws, workspaceConfig, windowsByFlattenIndex
     const split = findSplitContainingTwoWindows(wsCurrent, win0.id, win1.id);
     if (split?.id) {
       await client.runCommand('set-tiling-direction ' + splitDirection, split.id);
-      await delay(LAYOUT_DELAY_MS);
       log(`Focusing split container for next grouping`);
       await focusWindow(client, split.id);
     }
@@ -237,7 +217,6 @@ async function applyTilingSizes(client, wsName, workspaceConfig, queryWorkspace,
 
       await focusWindow(client, childId);
       await client.runCommand(cmd, childId);
-      await delay(LAYOUT_DELAY_MS);
 
       iterations++;
     }
@@ -262,7 +241,6 @@ export async function runLayoutPhase(client, config, opts = {}) {
     const ws = await focusWorkspace(client, wsName, { log });
 
     await setWorkspaceTilingDirection(client, wsName, targetTilingDirection, { log });
-    await delay(LAYOUT_DELAY_MS);
 
     const windows = findAllWindows(ws);
     if (windows.length !== applications.length) {
@@ -272,13 +250,11 @@ export async function runLayoutPhase(client, config, opts = {}) {
 
     log(`Initial workspace structure: ${(ws.children ?? []).length} direct children`);
     await buildTiledTree(client, ws, workspace, windows, { log });
-    await delay(LAYOUT_DELAY_MS);
 
     const { workspaces: workspacesAfterLayout } = await client.queryWorkspaces();
     const wsAfterLayout = workspacesAfterLayout?.find((w) => w?.name === wsName);
     if (wsAfterLayout) {
       await applyTilingSizes(client, wsName, workspace, wsAfterLayout, { log });
-      await delay(LAYOUT_DELAY_MS);
     }
   }
 

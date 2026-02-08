@@ -14,6 +14,7 @@ import { runOpenPhase } from './openWorkspaces.js';
 import { runLayoutPhase, runVerifyLayout } from './applyLayout.js';
 
 const CONNECT_DELAY_MS = 100;
+const LAYOUT_TO_FULLSCREEN_DELAY_MS = 3000;
 
 /** All phases in default order. */
 export const PHASES = ['clear', 'open', 'layout', 'fullscreen'];
@@ -65,6 +66,8 @@ export async function startupFromConfig(configPath = 'config.json', opts = {}) {
       await runLayoutPhase(client, config, innerOpts);
       await runVerifyLayout(client, config, { log });
     }
+    // TODO - determine why this delay is necessary (I think Firefox just needs time to load)
+    if (phases.includes('layout') && phases.includes('fullscreen')) await delay(LAYOUT_TO_FULLSCREEN_DELAY_MS);
     if (phases.includes('fullscreen')) await runFullscreenPhase(client, config, innerOpts);
   });
 }
