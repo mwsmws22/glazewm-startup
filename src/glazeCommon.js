@@ -3,8 +3,6 @@
  * Shared by openWorkspaces, clearWorkspaces, fullscreen CLI, etc.
  */
 
-export const FOCUS_DELAY_MS = 500;
-
 export function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -31,7 +29,6 @@ export async function focusWorkspace(client, workspaceName, opts = {}) {
   if (workspaceName) {
     log(`Focusing workspace ${workspaceName}`);
     await client.runCommand('focus --workspace ' + workspaceName);
-    await delay(FOCUS_DELAY_MS);
   }
 }
 
@@ -45,7 +42,6 @@ export async function focusWindow(client, containerId) {
     throw new Error('containerId is required');
   }
   await client.runCommand('focus --container-id ' + containerId);
-  await delay(FOCUS_DELAY_MS);
 }
 
 /**
