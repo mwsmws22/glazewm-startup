@@ -7,7 +7,8 @@
 
 import { WmClient } from 'glazewm';
 import { readFile } from 'fs/promises';
-import { getCurrentWorkspace, runClearPhase } from './clearWorkspaces.js';
+import { runClearPhase } from './clearWorkspaces.js';
+import { runWithWorkspaceRestore } from './glazeCommon.js';
 import { runOpenPhase } from './openWorkspaces.js';
 import { runLayoutPhase, runVerifyLayout } from './applyLayout.js';
 
@@ -50,34 +51,17 @@ export async function startupFromConfig(configPath = 'config.json', opts = {}) {
   client.onDisconnect(() => log('Disconnected from GlazeWM'));
   client.onError((err) => log(`GlazeWM error: ${err}`));
 
-  let originalWorkspace = null;
-  try {
-    await delay(CONNECT_DELAY_MS);
-    log('Querying workspaces and windows...');
+  await delay(CONNECT_DELAY_MS);
+  log('Querying workspaces and windows...');
 
-    originalWorkspace = await getCurrentWorkspace(client);
+  await runWithWorkspaceRestore(client, { log }, async (client, opts) => {
     await runClearPhase(client, config, { log });
-    await runOpenPhase(client, config, { log, originalWorkspace });
+    await runOpenPhase(client, config, opts);
     if (!skipLayout) {
-      await runLayoutPhase(client, config, { log, originalWorkspace });
+      await runLayoutPhase(client, config, opts);
       await runVerifyLayout(client, config, { log });
     } else {
       log('Skipping layout (--no-layout)');
     }
-  } catch (err) {
-    log(err?.message ?? String(err));
-    if (originalWorkspace && client) {
-      try {
-        log(`Focusing back to workspace ${originalWorkspace} (after error)`);
-        await client.runCommand('focus --workspace ' + originalWorkspace);
-        await delay(300);
-      } catch (_) {}
-    }
-    process.exit(1);
-  } finally {
-    if (typeof client.close === 'function') {
-      client.close();
-    }
-  }
-  process.exit(0);
+  });
 }

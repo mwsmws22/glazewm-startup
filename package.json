@@ -8,6 +8,7 @@
     "parse": "node src/cli-parse.js",
     "startup": "node src/cli-startup.js",
     "clear": "node src/cli-clear.js",
+    "fullscreen": "node src/cli-fullscreen.js",
     "test": "node --test src/parseWorkspace.test.js"
   },
   "keywords": ["glazewm", "windows", "tiling", "workspace"],

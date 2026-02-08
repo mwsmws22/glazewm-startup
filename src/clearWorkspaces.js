@@ -5,24 +5,16 @@
  * close by ID, then for any remaining (e.g. WhatsApp) focus workspace and close, then focus back.
  */
 
+import { getCurrentWorkspace } from './glazeCommon.js';
 import { findAllWindows } from './parseWorkspace.js';
+
+export { getCurrentWorkspace };
 
 const CLOSE_DELAY_MS = 500;
 const AFTER_FOCUS_DELAY_MS = 500;
 
 function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-/**
- * Get the name of the currently focused workspace.
- * @param {object} client - WmClient
- * @returns {Promise<string|null>}
- */
-export async function getCurrentWorkspace(client) {
-  const { workspaces } = await client.queryWorkspaces();
-  const focused = workspaces?.find((w) => w?.hasFocus);
-  return focused?.name ?? null;
 }
 
 /**
