@@ -227,7 +227,5 @@ export async function runOpenPhase(client, config, opts = {}) {
   for (const workspace of config.workspaces ?? []) {
     await openAppsInWorkspace(client, workspace, { ...opts, client, originalWorkspace });
   }
-
-  log('Done.');
 }
 

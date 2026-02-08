@@ -36,6 +36,18 @@ export async function focusWorkspace(client, workspaceName, opts = {}) {
 }
 
 /**
+ * Focus a window (or container) by id, then wait so the WM can settle.
+ * @param {object} client - WmClient
+ * @param {string} containerId - Container/window id
+ * @param {{ log?: (msg: string) => void }} opts
+ */
+export async function focusWindow(client, containerId, opts = {}) {
+  if (!containerId) return;
+  await client.runCommand('focus --container-id ' + containerId);
+  await delay(FOCUS_DELAY_MS);
+}
+
+/**
  * Run a function, then restore workspace, close client, and exit the process.
  * Gets current workspace first, passes opts with originalWorkspace to fn.
  * On success: restore, close, process.exit(0). On error: log, restore, close, process.exit(1).

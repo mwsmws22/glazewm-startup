@@ -10,7 +10,7 @@
  * - Optionally use resize (--width / --height with +/- N%) to approximate tiling_size ratios
  */
 
-import { delay } from './glazeCommon.js';
+import { delay, focusWorkspace, focusWindow } from './glazeCommon.js';
 import { findAllWindows, flattenApplications } from './parseWorkspace.js';
 
 const LAYOUT_DELAY_MS = 500;
@@ -150,14 +150,11 @@ async function buildTiledTree(client, ws, workspaceConfig, windowsByFlattenIndex
     log(`Grouping into ${splitDirection} split: ${name0} (idx ${idx0}), ${name1} (idx ${idx1})`);
 
     try {
-      await client.runCommand('focus --workspace ' + (workspaceConfig?.name ?? ''));
-      await delay(LAYOUT_DELAY_MS);
-      await client.runCommand('focus --container-id ' + win0.id);
-      await delay(LAYOUT_DELAY_MS);
+      await focusWorkspace(client, workspaceConfig?.name ?? '', { log });
+      await focusWindow(client, win0.id, { log });
       await client.runCommand('set-tiling-direction ' + splitDirection);
       await delay(LAYOUT_DELAY_MS);
-      await client.runCommand('focus --container-id ' + win1.id);
-      await delay(LAYOUT_DELAY_MS);
+      await focusWindow(client, win1.id, { log });
       await client.runCommand('move --direction left', win1.id);
       await delay(LAYOUT_DELAY_MS);
     } catch (err) {
@@ -177,8 +174,7 @@ async function buildTiledTree(client, ws, workspaceConfig, windowsByFlattenIndex
       await client.runCommand('set-tiling-direction ' + splitDirection, split.id);
       await delay(LAYOUT_DELAY_MS);
       log(`Focusing split container for next grouping`);
-      await client.runCommand('focus --container-id ' + split.id);
-      await delay(LAYOUT_DELAY_MS);
+      await focusWindow(client, split.id, { log });
     }
     currentWindows = findAllWindows(wsCurrent);
   }
@@ -239,8 +235,7 @@ async function applyTilingSizes(client, wsName, workspaceConfig, queryWorkspace,
       const cmd = `resize --${axis} ${sign}${stepPct}%`;
       log(`Resize path [${path.join(',')}] child ${worstIndex}: ${cmd} (target ${((targetRatios[worstIndex] ?? 0) * 100).toFixed(2)}%, current ${((currentRatios[worstIndex] ?? 0) * 100).toFixed(2)}%)`);
 
-      await client.runCommand('focus --container-id ' + childId);
-      await delay(LAYOUT_DELAY_MS);
+      await focusWindow(client, childId, { log });
       await client.runCommand(cmd, childId);
       await delay(LAYOUT_DELAY_MS);
 
@@ -264,9 +259,7 @@ export async function runLayoutPhase(client, config, opts = {}) {
     const applications = flattenApplications(workspace);
     if (!wsName || applications.length === 0) continue;
 
-    log(`Focusing workspace ${wsName}`);
-    await client.runCommand('focus --workspace ' + wsName);
-    await delay(LAYOUT_DELAY_MS);
+    await focusWorkspace(client, wsName, { log });
 
     await setWorkspaceTilingDirection(client, wsName, targetTilingDirection, { log });
     await delay(LAYOUT_DELAY_MS);
@@ -294,13 +287,6 @@ export async function runLayoutPhase(client, config, opts = {}) {
       await applyTilingSizes(client, wsName, workspace, wsAfterLayout, { log });
       await delay(LAYOUT_DELAY_MS);
     }
-  }
-
-  const originalWorkspace = opts.originalWorkspace ?? null;
-  if (originalWorkspace) {
-    log(`Focusing back to workspace ${originalWorkspace}`);
-    await client.runCommand('focus --workspace ' + originalWorkspace);
-    await delay(LAYOUT_DELAY_MS);
   }
 
   log('Layout applied.');

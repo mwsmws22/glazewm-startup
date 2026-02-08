@@ -4,7 +4,7 @@
  */
 
 import { spawn } from 'child_process';
-import { delay, focusWorkspace, FOCUS_DELAY_MS } from './glazeCommon.js';
+import { delay, focusWindow, focusWorkspace, FOCUS_DELAY_MS } from './glazeCommon.js';
 import { findAllWindows, flattenApplications } from './parseWorkspace.js';
 
 const isWindows = process.platform === 'win32';
@@ -20,11 +20,11 @@ function sendF11Key() {
 }
 
 /**
- * Get window ids that have fullscreen: true in config for a workspace, by matching config to current windows by index.
+ * Get windows that have fullscreen: true in config for a workspace, by matching config to current windows by index.
  * @param {object} client - WmClient
  * @param {object} workspaceConfig - Config workspace node (name, children / flattenApplications)
  * @param {string} workspaceName - Workspace name (e.g. "2")
- * @returns {Promise<string[]>} Window ids to fullscreen
+ * @returns {Promise<Array<{ id: string, title: string }>>} Windows to fullscreen (id + title for logging)
  */
 export async function getFullscreenWindowIdsForWorkspace(client, workspaceConfig, workspaceName) {
   const { workspaces: liveWorkspaces } = await client.queryWorkspaces();
@@ -32,30 +32,34 @@ export async function getFullscreenWindowIdsForWorkspace(client, workspaceConfig
   if (!liveWs) return [];
   const apps = flattenApplications(workspaceConfig);
   const windows = findAllWindows(liveWs);
-  const ids = [];
+  const list = [];
   for (let i = 0; i < apps.length && i < windows.length; i++) {
-    if (apps[i]?.fullscreen && windows[i]?.id) ids.push(windows[i].id);
+    if (apps[i]?.fullscreen && windows[i]?.id) {
+      list.push({
+        id: windows[i].id,
+        title: windows[i].title ?? apps[i]?.title ?? apps[i]?.name ?? 'Unknown',
+      });
+    }
   }
-  return ids;
+  return list;
 }
 
 /**
- * Fullscreen a list of windows by id: focus each, send F11, delay between.
+ * Fullscreen a list of windows: focus each, send F11, delay between. Logs window title and id.
  * @param {object} client - WmClient
- * @param {string[]} windowIds - Container ids to fullscreen
+ * @param {Array<{ id: string, title: string }>} windows - Windows to fullscreen (id + title for logging)
  * @param {{ log?: (msg: string) => void }} opts
  */
-export async function fullscreenWindowIds(client, windowIds, opts = {}) {
+export async function fullscreenWindowIds(client, windows, opts = {}) {
   const log = opts.log ?? (() => {});
-  if (windowIds.length === 0) return;
-  log(`Fullscreening ${windowIds.length} window(s)...`);
-  for (const windowId of windowIds) {
-    await client.runCommand('focus --container-id ' + windowId);
-    await delay(FOCUS_DELAY_MS);
+  if (windows.length === 0) return;
+  log(`Fullscreening ${windows.length} window(s)...`);
+  for (const { id, title } of windows) {
+    log(`Fullscreening: ${title} (id: ${id})`);
+    await focusWindow(client, id, opts);
     sendF11Key();
     await delay(FOCUS_DELAY_MS);
   }
-  log('Done.');
 }
 
 /**
@@ -97,12 +101,12 @@ export async function runFullscreenPhase(client, config, opts = {}) {
     return;
   }
 
-  const windowIds = await getFullscreenWindowIdsForWorkspace(client, workspace, workspaceName);
-  if (windowIds.length === 0) {
+  const windows = await getFullscreenWindowIdsForWorkspace(client, workspace, workspaceName);
+  if (windows.length === 0) {
     log(`No fullscreen windows in workspace "${workspaceName}" (config fullscreen: true matched to current windows).`);
     return;
   }
 
   await focusWorkspace(client, workspaceName, opts);
-  await fullscreenWindowIds(client, windowIds, opts);
+  await fullscreenWindowIds(client, windows, opts);
 }

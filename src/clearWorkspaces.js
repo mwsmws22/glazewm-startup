@@ -5,7 +5,7 @@
  * close by ID, then for any remaining (e.g. WhatsApp) focus workspace and close, then focus back.
  */
 
-import { delay, getCurrentWorkspace } from './glazeCommon.js';
+import { delay, focusWorkspace, getCurrentWorkspace } from './glazeCommon.js';
 import { findAllWindows } from './parseWorkspace.js';
 
 export { getCurrentWorkspace };
@@ -21,7 +21,7 @@ export async function clearWorkspaceWithFocus(client, workspaceName, originalWor
   const log = opts.log ?? (() => {});
 
   log(`Focusing workspace ${workspaceName} and closing remaining windows...`);
-  await client.runCommand('focus --workspace ' + workspaceName);
+  await focusWorkspace(client, workspaceName, opts);
   await delay(AFTER_FOCUS_DELAY_MS);
 
   const { workspaces } = await client.queryWorkspaces();
@@ -42,9 +42,7 @@ export async function clearWorkspaceWithFocus(client, workspaceName, originalWor
   }
 
   if (originalWorkspace) {
-    log(`Focusing back to workspace ${originalWorkspace}`);
-    await client.runCommand('focus --workspace ' + originalWorkspace);
-    await delay(300);
+    await focusWorkspace(client, originalWorkspace, opts);
   }
 }
 
