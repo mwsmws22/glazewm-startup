@@ -50,11 +50,12 @@ export async function startupFromConfig(configPath = 'config.json', opts = {}) {
   client.onDisconnect(() => log('Disconnected from GlazeWM'));
   client.onError((err) => log(`GlazeWM error: ${err}`));
 
+  let originalWorkspace = null;
   try {
     await delay(CONNECT_DELAY_MS);
     log('Querying workspaces and windows...');
 
-    const originalWorkspace = await getCurrentWorkspace(client);
+    originalWorkspace = await getCurrentWorkspace(client);
     await runClearPhase(client, config, { log });
     await runOpenPhase(client, config, { log, originalWorkspace });
     if (!skipLayout) {
@@ -63,6 +64,16 @@ export async function startupFromConfig(configPath = 'config.json', opts = {}) {
     } else {
       log('Skipping layout (--no-layout)');
     }
+  } catch (err) {
+    log(err?.message ?? String(err));
+    if (originalWorkspace && client) {
+      try {
+        log(`Focusing back to workspace ${originalWorkspace} (after error)`);
+        await client.runCommand('focus --workspace ' + originalWorkspace);
+        await delay(300);
+      } catch (_) {}
+    }
+    process.exit(1);
   } finally {
     if (typeof client.close === 'function') {
       client.close();

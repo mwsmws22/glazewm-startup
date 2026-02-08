@@ -99,18 +99,25 @@ export async function runOpenPhase(client, config, opts = {}) {
       }
 
       log(`Opening: ${name}${app?.link ? ' ' + app.link : ''}`);
-      try {
-        spawn(path, args, {
-          detached: true,
-          stdio: 'ignore',
-          shell: false,
-        }).unref();
-        expectedWindowCount += 1;
-      } catch (err) {
-        const msg = typeof err === 'string' ? err : err?.message ?? String(err);
+      const child = spawn(path, args, {
+        detached: true,
+        stdio: 'ignore',
+        shell: false,
+      });
+      child.on('error', async (err) => {
+        const msg = err?.message ?? String(err);
         log(`Failed to open ${name}: ${msg}`);
-        throw err;
-      }
+        if (originalWorkspace) {
+          log(`Focusing back to workspace ${originalWorkspace} (after spawn error)`);
+          try {
+            await client.runCommand('focus --workspace ' + originalWorkspace);
+            await delay(300);
+          } catch (_) {}
+        }
+        process.exit(1);
+      });
+      child.unref();
+      expectedWindowCount += 1;
       await delay(WAIT_TIME_BETWEEN_APPS_MS);
     }
 
