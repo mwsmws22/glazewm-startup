@@ -11,3 +11,4 @@ node_modules
 ignore
 config.json
 workspace.json
+*.code-workspace
